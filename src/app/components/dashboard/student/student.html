@@ -1,0 +1,50 @@
+<div class="dashboard-wrapper">
+	<div class="header-section">
+		<div class="header-grid">
+			<div class="header-box blue dark"></div>
+			<div class="header-box blue"></div>
+			<div class="header-box gold"></div>
+			<div class="header-box gold"></div>
+		</div>
+	</div>
+
+	<div class="dashboard-container">
+	<div class="dashboard">
+	<header class="dashboard-header">
+		<div class="header-left">
+			<h1>Student Dashboard</h1>
+			<p class="sub">Your classes, attendance summary, and quick links.</p>
+		</div>
+		<div class="header-actions">
+			<button class="logout" (click)="logout()">Logout</button>
+		</div>
+	</header>
+
+	<section class="summary">
+		<div class="summary-card">Present<br><strong>18</strong></div>
+		<div class="summary-card">Absent<br><strong>1</strong></div>
+		<div class="summary-card">Late<br><strong>0</strong></div>
+	</section>
+
+	<div class="content">
+		<main class="main">
+			<h2>Today's Schedule</h2>
+			<div class="subjects">
+				<div class="subject-card">
+					<h3>CS 101 - Intro Prog</h3>
+					<p>04:30 PM - 06:00 PM • Lab 1</p>
+					<button class="action">View</button>
+				</div>
+				</div>
+			</div>
+		</main>
+
+		<aside class="sidebar">
+			<div class="quick-action">
+				<h3>Quick Links</h3>
+				<div class="scanner-box">[Links]</div>
+				<button class="manual">View Profile</button>
+			</div>
+		</aside>
+	</div>
+</div>

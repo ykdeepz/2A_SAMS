@@ -1,0 +1,62 @@
+<div class="dashboard-wrapper">
+	<div class="header-section">
+		<div class="header-grid">
+			<div class="header-box blue dark"></div>
+			<div class="header-box blue"></div>
+			<div class="header-box gold"></div>
+			<div class="header-box gold"></div>
+		</div>
+	</div>
+
+	<div class="dashboard-container">
+	<div class="dashboard">
+	<header class="dashboard-header">
+		<div class="header-left">
+			<h1>Instructor Portal</h1>
+			<p class="sub">Welcome back — see today's summary and quick actions.</p>
+		</div>
+		<div class="header-actions">
+			<button class="logout" (click)="logout()">Logout</button>
+		</div>
+	</header>
+
+	<section class="summary">
+		<div class="summary-card">Present<br><strong>145</strong></div>
+		<div class="summary-card">Absent<br><strong>8</strong></div>
+		<div class="summary-card">Late<br><strong>4</strong></div>
+	</section>
+
+	<div class="content">
+		<main class="main">
+			<h2>My Subjects</h2>
+			<div class="subjects">
+				<div class="subject-card">
+					<h3>IT 312 - Web Sys</h3>
+					<p>09:00 AM - 10:30 AM • Lab 4, Building 2</p>
+					<button class="action">Scan QR</button>
+				</div>
+				<div class="subject-card">
+					<h3>IT 415 - Capstone</h3>
+					<p>01:00 PM - 04:00 PM • Lecture Hall A</p>
+					<button class="action">Scan QR</button>
+				</div>
+				</div>
+			</div>
+		</main>
+
+		<aside class="sidebar">
+			<div class="quick-action">
+				<h3>Quick Scanner</h3>
+				<div class="scanner-box">[QR Area]</div>
+				<button class="manual">Manual Entry</button>
+			</div>
+			<div class="upcoming">
+				<h4>Upcoming Classes</h4>
+				<ul>
+					<li>IT 415 Capstone - 1:00 PM</li>
+					<li>CS 101 Intro Prog - 4:30 PM</li>
+				</ul>
+			</div>
+		</aside>
+	</div>
+</div>

@@ -1,0 +1,55 @@
+<div class="dashboard-wrapper">
+	<div class="header-section">
+		<div class="header-grid">
+			<div class="header-box blue dark"></div>
+			<div class="header-box blue"></div>
+			<div class="header-box gold"></div>
+			<div class="header-box gold"></div>
+		</div>
+	</div>
+
+	<div class="dashboard-container">
+	<div class="dashboard">
+	<header class="dashboard-header">
+		<div class="header-left">
+			<h1>Admin Dashboard</h1>
+			<p class="sub">Overview of system activity and quick administrative actions.</p>
+		</div>
+		<div class="header-actions">
+			<button class="logout" (click)="logout()">Logout</button>
+		</div>
+	</header>
+
+	<section class="summary">
+		<div class="summary-card">Active Users<br><strong>312</strong></div>
+		<div class="summary-card">Pending Requests<br><strong>12</strong></div>
+		<div class="summary-card">System Alerts<br><strong>1</strong></div>
+	</section>
+
+	<div class="content">
+		<main class="main">
+			<h2>Management</h2>
+			<div class="subjects">
+				<div class="subject-card">
+					<h3>Manage Users</h3>
+					<p>Create, edit, or deactivate user accounts.</p>
+					<button class="action">Open</button>
+				</div>
+				<div class="subject-card">
+					<h3>System Reports</h3>
+					<p>View recent logs and reports.</p>
+					<button class="action">Open</button>
+				</div>
+				</div>
+			</div>
+		</main>
+
+		<aside class="sidebar">
+			<div class="quick-action">
+				<h3>Quick Tools</h3>
+				<div class="scanner-box">[Tools]</div>
+				<button class="manual">Run Health Check</button>
+			</div>
+		</aside>
+	</div>
+</div>
