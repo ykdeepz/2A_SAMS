@@ -93,8 +93,13 @@
 
     <!-- Subjects Content -->
     <div class="dashboard-container" *ngIf="activeSection === 'subjects'">
-      <h2>My Subjects</h2>
-      <button class="create-btn" (click)="showCreateSubject = !showCreateSubject">Create New Subject</button>
+      <div class="subjects-header">
+        <h2>My Subjects</h2>
+        <button class="create-btn" *ngIf="!selectedSubject" (click)="showCreateSubject = !showCreateSubject">
+          <span class="btn-icon">+</span>
+          Create New Subject
+        </button>
+      </div>
 
       <div *ngIf="showCreateSubject" class="create-form">
         <input [(ngModel)]="newSubject.name" placeholder="Subject Name" />
@@ -106,83 +111,125 @@
         <button (click)="showCreateSubject = false">Cancel</button>
       </div>
 
-      <div class="subjects-grid" *ngIf="!selectedSubject">
+      <!-- Subjects Grid View -->
+      <div class="subjects-grid" [class.blurred]="selectedSubject">
         <div class="subject-card" *ngFor="let subject of subjects" (click)="selectSubject(subject)">
-          <h3>{{ subject.name }}</h3>
-          <p>Code: {{ subject.code }}</p>
-          <p>Students: {{ subject.enrolledStudents.length }}</p>
+          <div class="subject-info">
+            <h3>{{ subject.name }}</h3>
+            <p class="subject-code">{{ subject.code }}</p>
+            <p class="subject-meta">{{ subject.enrolledStudents.length }} students</p>
+          </div>
+          <div class="subject-schedule">
+            <p class="schedule-time">{{ subject.schedule.time }}</p>
+            <p class="schedule-room">{{ subject.schedule.room || 'TBA' }}</p>
+          </div>
         </div>
       </div>
 
-      <div *ngIf="selectedSubject">
-        <button class="back-btn" (click)="selectedSubject = null; students = []; showAttendance = false; attendanceStatus = {}">Back to Subjects</button>
-        <h3>{{ selectedSubject.name }} - Students</h3>
-        <button class="attendance-btn" (click)="showAttendance = !showAttendance">Take Attendance</button>
-
-        <div class="add-student">
-          <h4>Add Student to Class</h4>
-          <div class="student-search-container">
-            <input 
-              type="text" 
-              [(ngModel)]="newStudentId" 
-              (input)="searchStudent()"
-              placeholder="Enter Student ID (e.g., 2024001)" 
-              name="studentId"
-            />
-            <button (click)="scanQR()" type="button" class="scan-qr-btn">Scan QR</button>
-            <button (click)="clearStudentSearch()" type="button" class="clear-btn" *ngIf="newStudentId">Clear</button>
+      <!-- Subject Focus Overlay -->
+      <div class="subject-focus-overlay" *ngIf="selectedSubject">
+        <div class="subject-focus-panel">
+          <div class="focus-header">
+            <button class="back-btn" (click)="deselectSubject()">
+              <span class="back-icon">←</span>
+              Back to Subjects
+            </button>
           </div>
-          
-          <p class="search-message" [style.color]="studentSearchMessageColor" *ngIf="studentSearchMessage">
-            {{ studentSearchMessage }}
-          </p>
 
-          <!-- Student Preview Card -->
-          <div class="student-preview" *ngIf="foundStudent">
-            <div class="preview-header">
-              <h4>Student Details</h4>
+          <div class="focus-content">
+            <div class="subject-header-large">
+              <h2>{{ selectedSubject.name }}</h2>
+              <p class="subject-code-large">{{ selectedSubject.code }}</p>
             </div>
-            <div class="preview-content">
-              <div class="preview-row">
-                <label>Name:</label>
-                <span>{{ foundStudent.name }}</span>
+
+            <div class="subject-details">
+              <div class="detail-item">
+                <span class="detail-label">Schedule:</span>
+                <span class="detail-value">{{ selectedSubject.schedule.days.join(', ') }} at {{ selectedSubject.schedule.time }}</span>
               </div>
-              <div class="preview-row">
-                <label>Student ID:</label>
-                <span>{{ foundStudent.studentId }}</span>
+              <div class="detail-item">
+                <span class="detail-label">Room:</span>
+                <span class="detail-value">{{ selectedSubject.schedule.room || 'TBA' }}</span>
               </div>
-              <div class="preview-row">
-                <label>Email:</label>
-                <span>{{ foundStudent.email }}</span>
-              </div>
-              <div class="preview-row" *ngIf="foundStudent.location">
-                <label>Location:</label>
-                <span>{{ foundStudent.location.address }}</span>
-              </div>
-              <div class="preview-actions">
-                <button (click)="addStudent()" type="button" class="add-btn">Add to Class</button>
+              <div class="detail-item">
+                <span class="detail-label">Enrolled Students:</span>
+                <span class="detail-value">{{ selectedSubject.enrolledStudents.length }}</span>
               </div>
             </div>
+
+            <div class="focus-actions">
+              <button class="action-btn primary" (click)="showAttendance = !showAttendance">
+                <span class="btn-icon">📊</span>
+                Take Attendance
+              </button>
+            </div>
+
+            <div *ngIf="showAttendance" class="attendance-form">
+              <h4>Mark Attendance for Today</h4>
+              <div *ngFor="let student of students" class="attendance-item">
+                <span>{{ student.name }} ({{ student.studentId }})</span>
+                <label><input type="radio" [name]="'status-' + student.id" value="present" [(ngModel)]="attendanceStatus[student.id]" /> Present</label>
+                <label><input type="radio" [name]="'status-' + student.id" value="late" [(ngModel)]="attendanceStatus[student.id]" /> Late</label>
+                <label><input type="radio" [name]="'status-' + student.id" value="absent" [(ngModel)]="attendanceStatus[student.id]" /> Absent</label>
+              </div>
+              <button class="action-btn" (click)="recordAttendance()">Save Attendance</button>
+            </div>
+
+            <div class="add-student">
+              <h4>Add Student to Class</h4>
+              <div class="student-search-container">
+                <input 
+                  type="text" 
+                  [(ngModel)]="newStudentId" 
+                  (input)="searchStudent()"
+                  placeholder="Enter Student ID (e.g., 2024001)" 
+                  name="studentId"
+                />
+                <button (click)="scanQR()" type="button" class="scan-qr-btn">Scan QR</button>
+                <button (click)="clearStudentSearch()" type="button" class="clear-btn" *ngIf="newStudentId">Clear</button>
+              </div>
+              
+              <p class="search-message" [style.color]="studentSearchMessageColor" *ngIf="studentSearchMessage">
+                {{ studentSearchMessage }}
+              </p>
+
+              <!-- Student Preview Card -->
+              <div class="student-preview" *ngIf="foundStudent">
+                <div class="preview-header">
+                  <h4>Student Details</h4>
+                </div>
+                <div class="preview-content">
+                  <div class="preview-row">
+                    <label>Name:</label>
+                    <span>{{ foundStudent.name }}</span>
+                  </div>
+                  <div class="preview-row">
+                    <label>Student ID:</label>
+                    <span>{{ foundStudent.studentId }}</span>
+                  </div>
+                  <div class="preview-row">
+                    <label>Email:</label>
+                    <span>{{ foundStudent.email }}</span>
+                  </div>
+                  <div class="preview-row" *ngIf="foundStudent.location">
+                    <label>Location:</label>
+                    <span>{{ foundStudent.location.address }}</span>
+                  </div>
+                  <div class="preview-actions">
+                    <button (click)="addStudent()" type="button" class="add-btn">Add to Class</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <ul class="students-list">
+              <li *ngFor="let student of students">
+                {{ student.name }} ({{ student.studentId }})
+                <button (click)="removeStudent(student.id)">Remove</button>
+              </li>
+            </ul>
           </div>
         </div>
-
-        <div *ngIf="showAttendance" class="attendance-form">
-          <h4>Mark Attendance for Today</h4>
-          <div *ngFor="let student of students" class="attendance-item">
-            <span>{{ student.name }} ({{ student.studentId }})</span>
-            <label><input type="radio" [name]="'status-' + student.id" value="present" [(ngModel)]="attendanceStatus[student.id]" /> Present</label>
-            <label><input type="radio" [name]="'status-' + student.id" value="late" [(ngModel)]="attendanceStatus[student.id]" /> Late</label>
-            <label><input type="radio" [name]="'status-' + student.id" value="absent" [(ngModel)]="attendanceStatus[student.id]" /> Absent</label>
-          </div>
-          <button (click)="recordAttendance()">Save Attendance</button>
-        </div>
-
-        <ul class="students-list">
-          <li *ngFor="let student of students">
-            {{ student.name }} ({{ student.studentId }})
-            <button (click)="removeStudent(student.id)">Remove</button>
-          </li>
-        </ul>
       </div>
 
       <!-- QR Scanner -->

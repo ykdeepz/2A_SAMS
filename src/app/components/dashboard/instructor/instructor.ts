@@ -52,12 +52,20 @@ export class Instructor implements OnInit {
     if (section === 'subjects') {
       this.selectedSubject = null;
       this.students = [];
+      this.showCreateSubject = false;
     }
   }
 
   selectSubject(subject: Subject): void {
     this.selectedSubject = subject;
     this.students = this.dataService.getStudentsBySubject(subject.id);
+    this.showAttendance = false;
+    this.attendanceStatus = {};
+  }
+
+  deselectSubject(): void {
+    this.selectedSubject = null;
+    this.students = [];
     this.showAttendance = false;
     this.attendanceStatus = {};
   }
