@@ -28,8 +28,6 @@ interface StudentSignUpData extends SignInData {
   mobileNumber: string;
   gradeLevel: string;
   section: string;
-  latitude: string;
-  longitude: string;
   address: string;
   confirmPassword: string;
 }
@@ -76,7 +74,7 @@ export class LoginComponent implements OnInit {
     student: {
       id: '', firstName: '', middleName: '', lastName: '',
       email: '', mobileNumber: '', gradeLevel: '', section: '',
-      latitude: '', longitude: '', address: '',
+      address: '',
       password: '', confirmPassword: ''
     },
     parent: {
@@ -314,7 +312,7 @@ export class LoginComponent implements OnInit {
     } else if (this.selectedRole === 'student') {
       if (!data.id || !data.firstName || !data.lastName || !data.email || 
           !data.mobileNumber || !data.gradeLevel || !data.section || 
-          !data.latitude || !data.longitude || !data.address ||
+          !data.address ||
           !data.password || !data.confirmPassword) {
         this.setError('Please fill in all required fields.');
         return;
@@ -365,8 +363,6 @@ export class LoginComponent implements OnInit {
           gradeLevel: data.gradeLevel, 
           section: data.section,
           location: {
-            latitude: parseFloat(data.latitude),
-            longitude: parseFloat(data.longitude),
             address: data.address
           }
         }),

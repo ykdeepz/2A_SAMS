@@ -159,10 +159,6 @@
                 <label>Location:</label>
                 <span>{{ foundStudent.location.address }}</span>
               </div>
-              <div class="preview-row" *ngIf="foundStudent.location">
-                <label>Coordinates:</label>
-                <span>{{ foundStudent.location.latitude }}, {{ foundStudent.location.longitude }}</span>
-              </div>
               <div class="preview-actions">
                 <button (click)="addStudent()" type="button" class="add-btn">Add to Class</button>
               </div>
