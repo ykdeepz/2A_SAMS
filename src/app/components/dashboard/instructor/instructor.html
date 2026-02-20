@@ -1,62 +1,65 @@
-<div class="dashboard-wrapper">
-	<div class="header-section">
-		<div class="header-grid">
-			<div class="header-box blue dark"></div>
-			<div class="header-box blue"></div>
-			<div class="header-box gold"></div>
-			<div class="header-box gold"></div>
-		</div>
-	</div>
+<div class="layout">
 
-	<div class="dashboard-container">
-	<div class="dashboard">
-	<header class="dashboard-header">
-		<div class="header-left">
-			<h1>Instructor Portal</h1>
-			<p class="sub">Welcome back — see today's summary and quick actions.</p>
-		</div>
-		<div class="header-actions">
-			<button class="logout" (click)="logout()">Logout</button>
-		</div>
-	</header>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-circle">LOGO</div>
+      <h2>Instructor</h2>
+    </div>
 
-	<section class="summary">
-		<div class="summary-card">Present<br><strong>145</strong></div>
-		<div class="summary-card">Absent<br><strong>8</strong></div>
-		<div class="summary-card">Late<br><strong>4</strong></div>
-	</section>
+    <nav class="sidebar-nav">
+      <a class="nav-item active">Dashboard</a>
+      <a class="nav-item">My Subjects</a>
+      <a class="nav-item">Attendance</a>
+      <a class="nav-item">Reports</a>
+      <a class="nav-item">Settings</a>
+    </nav>
+  </aside>
 
-	<div class="content">
-		<main class="main">
-			<h2>My Subjects</h2>
-			<div class="subjects">
-				<div class="subject-card">
-					<h3>IT 312 - Web Sys</h3>
-					<p>09:00 AM - 10:30 AM • Lab 4, Building 2</p>
-					<button class="action">Scan QR</button>
-				</div>
-				<div class="subject-card">
-					<h3>IT 415 - Capstone</h3>
-					<p>01:00 PM - 04:00 PM • Lecture Hall A</p>
-					<button class="action">Scan QR</button>
-				</div>
-				</div>
-			
-		</main>
+  <!-- Main Content -->
+  <div class="main-content">
 
-		<aside class="sidebar">
-			<div class="quick-action">
-				<h3>Quick Scanner</h3>
-				<div class="scanner-box">[QR Area]</div>
-				<button class="manual">Manual Entry</button>
-			</div>
-			<div class="upcoming">
-				<h4>Upcoming Classes</h4>
-				<ul>
-					<li>IT 415 Capstone - 1:00 PM</li>
-					<li>CS 101 Intro Prog - 4:30 PM</li>
-				</ul>
-			</div>
-		</aside>
-	</div>
+    <!-- Topbar -->
+    <header class="topbar">
+      <h1>Instructor Portal</h1>
+      <button class="logout-btn" routerLink="/logout">
+  		Logout
+	</button>
+    </header>
+
+    <!-- Dashboard Content -->
+    <div class="dashboard-container">
+
+      <section class="attendance-section">
+        <h2>Today's Attendance Summary</h2>
+
+        <div class="cards-container">
+
+          <div class="card">
+            <h3>My Subjects</h3>
+            <p class="card-value">14</p>
+          </div>
+
+          <div class="card attendance">
+            <h3>In Attendance</h3>
+            <p class="card-value">92%</p>
+          </div>
+
+          <div class="card absent">
+            <h3>Absent</h3>
+            <p class="card-value">5%</p>
+          </div>
+
+          <div class="card late">
+            <h3>Late</h3>
+            <p class="card-value">3%</p>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+
 </div>
