@@ -253,4 +253,12 @@ export class DataService {
       console.error('Error saving attendances:', e);
     }
   }
+
+  deleteSubject(subjectId: string): void {
+    const index = this.subjects.findIndex(s => s.id === subjectId);
+    if (index !== -1) {
+      this.subjects.splice(index, 1);
+      this.saveSubjects();
+    }
+  }
 }

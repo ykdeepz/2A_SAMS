@@ -95,10 +95,21 @@
     <div class="dashboard-container" *ngIf="activeSection === 'subjects'">
       <div class="subjects-header">
         <h2>My Subjects</h2>
-        <button class="create-btn" *ngIf="!selectedSubject" (click)="showCreateSubject = !showCreateSubject">
-          <span class="btn-icon">+</span>
-          Create New Subject
-        </button>
+        <div class="header-actions">
+          <button class="delete-btn" *ngIf="!selectedSubject && !deleteMode" (click)="toggleDeleteMode()">
+            <span class="btn-icon">🗑️</span>
+            Delete Subjects
+          </button>
+          <button class="create-btn" *ngIf="!selectedSubject && !deleteMode" (click)="showCreateSubject = !showCreateSubject">
+            <span class="btn-icon">+</span>
+            Create New Subject
+          </button>
+          <div *ngIf="deleteMode" class="delete-actions">
+            <span class="delete-count">{{ selectedSubjectsForDeletion.length }} selected</span>
+            <button class="cancel-delete-btn" (click)="toggleDeleteMode()">Cancel</button>
+            <button class="confirm-delete-btn" (click)="confirmDelete()" [disabled]="selectedSubjectsForDeletion.length === 0">Delete Selected</button>
+          </div>
+        </div>
       </div>
 
       <div *ngIf="showCreateSubject" class="create-form">
@@ -113,15 +124,37 @@
 
       <!-- Subjects Grid View -->
       <div class="subjects-grid" [class.blurred]="selectedSubject">
-        <div class="subject-card" *ngFor="let subject of subjects" (click)="selectSubject(subject)">
-          <div class="subject-info">
+        <div class="subject-card" *ngFor="let subject of subjects" [class.selected]="selectedSubjectsForDeletion.includes(subject.id)" (click)="deleteMode ? toggleSubjectSelection(subject.id) : selectSubject(subject)">
+          <div class="subject-info" *ngIf="!deleteMode">
             <h3>{{ subject.name }}</h3>
             <p class="subject-code">{{ subject.code }}</p>
             <p class="subject-meta">{{ subject.enrolledStudents.length }} students</p>
           </div>
-          <div class="subject-schedule">
+          <div class="subject-info" *ngIf="deleteMode">
+            <div class="delete-checkbox">
+              <input type="checkbox" [checked]="selectedSubjectsForDeletion.includes(subject.id)" (change)="toggleSubjectSelection(subject.id)" />
+              <div class="subject-details">
+                <h3>{{ subject.name }}</h3>
+                <p class="subject-code">{{ subject.code }}</p>
+                <p class="subject-meta">{{ subject.enrolledStudents.length }} students</p>
+              </div>
+            </div>
+          </div>
+          <div class="subject-schedule" *ngIf="!deleteMode">
             <p class="schedule-time">{{ subject.schedule.time }}</p>
             <p class="schedule-room">{{ subject.schedule.room || 'TBA' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delete Confirmation Overlay -->
+      <div class="delete-confirmation-overlay" *ngIf="showDeleteConfirmation">
+        <div class="delete-confirmation-panel">
+          <h3>Delete Subjects</h3>
+          <p>Are you sure you want to permanently delete {{ selectedSubjectsForDeletion.length }} subject{{ selectedSubjectsForDeletion.length > 1 ? 's' : '' }}? This action cannot be undone.</p>
+          <div class="confirmation-actions">
+            <button class="cancel-btn" (click)="cancelDelete()">Cancel</button>
+            <button class="delete-permanently-btn" (click)="deleteSelectedSubjects()">Delete Permanently</button>
           </div>
         </div>
       </div>

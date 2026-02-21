@@ -29,6 +29,9 @@ export class Instructor implements OnInit {
   studentSearchMessageColor: string = '';
   newSubject: { name: string; code: string; schedule: { days: string; time: string; room: string } } = { name: '', code: '', schedule: { days: '', time: '', room: '' } };
   attendanceStatus: { [studentId: string]: string } = {};
+  deleteMode: boolean = false;
+  selectedSubjectsForDeletion: string[] = [];
+  showDeleteConfirmation: boolean = false;
 
   constructor(private router: Router, private dataService: DataService) {}
 
@@ -215,9 +218,13 @@ export class Instructor implements OnInit {
       return { present: 0, absent: total, late: 0, total, presentPercent: 0, absentPercent: 100, latePercent: 0 };
     }
 
-    const presentPercent = Math.round((present / total) * 100);
-    const absentPercent = Math.round((absent / total) * 100);
-    const latePercent = Math.round((late / total) * 100);
+    // Use a safe denominator: if more attendance records were marked
+    // than the expected total (e.g. duplicate records), base the
+    // percentage on the larger of the two to avoid >100% results.
+    const denominator = Math.max(total, marked);
+    const presentPercent = Math.round((present / denominator) * 100);
+    const absentPercent = Math.round((absent / denominator) * 100);
+    const latePercent = Math.round((late / denominator) * 100);
 
     return { present, absent, late, total, presentPercent, absentPercent, latePercent };
   }
@@ -231,5 +238,44 @@ export class Instructor implements OnInit {
   generateReport(subject: Subject): void {
     alert(`Generating report for ${subject.name}`);
     // TODO: Implement report generation
+  }
+
+  toggleDeleteMode(): void {
+    this.deleteMode = !this.deleteMode;
+    this.selectedSubjectsForDeletion = [];
+    this.showDeleteConfirmation = false;
+  }
+
+  toggleSubjectSelection(subjectId: string): void {
+    const index = this.selectedSubjectsForDeletion.indexOf(subjectId);
+    if (index > -1) {
+      this.selectedSubjectsForDeletion.splice(index, 1);
+    } else {
+      this.selectedSubjectsForDeletion.push(subjectId);
+    }
+  }
+
+  confirmDelete(): void {
+    if (this.selectedSubjectsForDeletion.length > 0) {
+      this.showDeleteConfirmation = true;
+    }
+  }
+
+  deleteSelectedSubjects(): void {
+    this.selectedSubjectsForDeletion.forEach(subjectId => {
+      // Remove from subjects array
+      this.subjects = this.subjects.filter(s => s.id !== subjectId);
+      // Remove from data service (assuming we add a method there)
+      this.dataService.deleteSubject(subjectId);
+    });
+    this.selectedSubjectsForDeletion = [];
+    this.showDeleteConfirmation = false;
+    this.deleteMode = false;
+  }
+
+  cancelDelete(): void {
+    this.selectedSubjectsForDeletion = [];
+    this.showDeleteConfirmation = false;
+    this.deleteMode = false;
   }
 }
