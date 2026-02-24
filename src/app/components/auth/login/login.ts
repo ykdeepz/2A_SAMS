@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
+import { DataService } from '../../../services/data.service';
 
 type UserRole = 'instructor' | 'student' | 'parent' | 'admin';
 
@@ -27,6 +28,7 @@ interface StudentSignUpData extends SignInData {
   mobileNumber: string;
   gradeLevel: string;
   section: string;
+  address: string;
   confirmPassword: string;
 }
 
@@ -48,7 +50,7 @@ type SignUpData = InstructorSignUpData | StudentSignUpData | ParentSignUpData;
   styleUrls: ['./login.css']
 })
 export class LoginComponent implements OnInit {
-  constructor(private router: Router, private route: ActivatedRoute) {}
+  constructor(private router: Router, private route: ActivatedRoute, private dataService: DataService) {}
   isSignUp = false;
   selectedRole: UserRole = 'instructor';
   message = '';
@@ -72,6 +74,7 @@ export class LoginComponent implements OnInit {
     student: {
       id: '', firstName: '', middleName: '', lastName: '',
       email: '', mobileNumber: '', gradeLevel: '', section: '',
+      address: '',
       password: '', confirmPassword: ''
     },
     parent: {
@@ -255,17 +258,38 @@ export class LoginComponent implements OnInit {
       try {
         const current = { role: this.selectedRole, id: data.id };
         localStorage.setItem('sams_current_user_v1', JSON.stringify(current));
+        // Reload registered users in DataService to ensure new registrations are available
+        this.dataService.reloadRegisteredUsers();
       } catch (e) {
         // ignore
       }
-      // redirect to role-specific dashboard
-      this.router.navigate(['/dashboard', this.selectedRole]);
+      // redirect to role-specific dashboard with a small delay
+      setTimeout(() => {
+        this.router.navigate(['/dashboard', this.selectedRole]);
+      }, 500);
     } else {
       this.setError(`Invalid ${this.selectedRole} credentials.`);
     }
   }
 
   ngOnInit(): void {
+    // Check if user is already logged in
+    const currentUserSession = localStorage.getItem('sams_current_user_v1');
+    if (currentUserSession) {
+      try {
+        const { role } = JSON.parse(currentUserSession);
+        // Verify the session is still valid by checking DataService
+        const user = this.dataService.getCurrentUser();
+        if (user && user.role === role) {
+          // User is still logged in, redirect to dashboard
+          this.router.navigate(['/dashboard', role]);
+          return;
+        }
+      } catch (e) {
+        // Invalid session, continue to login
+      }
+    }
+
     // If route provides signUp data, open signup mode
     const signUpData = this.route.snapshot.data && this.route.snapshot.data['signUp'];
     this.isSignUp = !!signUpData;
@@ -288,6 +312,7 @@ export class LoginComponent implements OnInit {
     } else if (this.selectedRole === 'student') {
       if (!data.id || !data.firstName || !data.lastName || !data.email || 
           !data.mobileNumber || !data.gradeLevel || !data.section || 
+          !data.address ||
           !data.password || !data.confirmPassword) {
         this.setError('Please fill in all required fields.');
         return;
@@ -310,7 +335,7 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    const idToStore = this.selectedRole === 'parent' ? data.email : (data.email || data.id);
+    const idToStore = this.selectedRole === 'student' ? data.id : (this.selectedRole === 'parent' ? data.email : (data.email || data.id));
 
     const credentialExists = this.registeredCredentials[this.selectedRole].some(
       cred => cred.id === idToStore
@@ -326,12 +351,48 @@ export class LoginComponent implements OnInit {
       password: data.password
     });
 
+    // Store additional user details
+    const userDetailsKey = `sams_user_details_${this.selectedRole}`;
+    try {
+      const existingDetails = JSON.parse(localStorage.getItem(userDetailsKey) || '{}');
+      existingDetails[idToStore] = {
+        email: data.email,
+        name: `${data.firstName}${data.middleName ? ' ' + data.middleName : ''} ${data.lastName}`,
+        ...(this.selectedRole === 'student' && { 
+          studentId: data.id, 
+          gradeLevel: data.gradeLevel, 
+          section: data.section,
+          location: {
+            address: data.address
+          }
+        }),
+        ...(this.selectedRole === 'instructor' && { department: data.department })
+      };
+      localStorage.setItem(userDetailsKey, JSON.stringify(existingDetails));
+    } catch (e) {
+      // ignore
+    }
+
     // persist to localStorage
     this.saveRegisteredToStorage();
-
-    this.setSuccess(`${this.capitalize(this.selectedRole)} account created successfully! You can now sign in.`);
-    this.isSignUp = false;
-    this.clearForm();
+    
+    // Reload registered users in DataService
+    this.dataService.reloadRegisteredUsers();
+    
+    // Auto-login after successful registration
+    try {
+      const current = { role: this.selectedRole, id: idToStore };
+      localStorage.setItem('sams_current_user_v1', JSON.stringify(current));
+      this.setSuccess(`${this.capitalize(this.selectedRole)} account created successfully!`);
+      // Redirect to dashboard
+      setTimeout(() => {
+        this.router.navigate(['/dashboard', this.selectedRole]);
+      }, 500);
+    } catch (e) {
+      this.setSuccess(`${this.capitalize(this.selectedRole)} account created successfully! You can now sign in.`);
+      this.isSignUp = false;
+      this.clearForm();
+    }
   }
 
   private saveRegisteredToStorage(): void {
