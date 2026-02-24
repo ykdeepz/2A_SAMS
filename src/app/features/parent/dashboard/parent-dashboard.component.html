@@ -1,0 +1,38 @@
+<div class="parent-dashboard-container" *ngIf="child">
+  <header class="parent-header">
+    <h1>{{ child.name }}'s Dashboard</h1>
+    <div class="parent-meta">
+      <span>ID: {{ child.studentId }}</span>
+      <span>Email: {{ child.email }}</span>
+    </div>
+  </header>
+
+  <section class="subjects-section">
+    <h2>Enrolled Subjects</h2>
+    <ul>
+      <li *ngFor="let subject of subjects">
+        {{ subject.code }} - {{ subject.name }} ({{ subject.schedule }})
+      </li>
+    </ul>
+  </section>
+
+  <section class="attendance-section">
+    <h2>Attendance Record</h2>
+    <table class="attendance-table">
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>Status</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let record of attendance">
+          <td>{{ getSubjectById(record.subjectId)?.code }}</td>
+          <td>{{ record.status }}</td>
+          <td>{{ record.markedAt | date:'short' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</div>

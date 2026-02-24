@@ -1,0 +1,30 @@
+<div class="container">
+  <app-sidebar [currentUser]="currentUser"></app-sidebar>
+  
+  <div class="main-content">
+    <header class="page-header">
+      <button class="back-btn" (click)="goBack()" title="Go back to dashboard">← Back</button>
+      <h1>My Subjects</h1>
+      <p>Manage and view all your courses</p>
+    </header>
+
+    <div class="subjects-list">
+      <div *ngFor="let subject of subjects; let i = index" class="subject-item" [style.border-left-color]="getSubjectColor(i)">
+        <div class="subject-info">
+          <h3>{{ subject.code }} - {{ subject.name }}</h3>
+          <p class="subject-description">{{ subject.description }}</p>
+          <div class="subject-meta">
+            <span class="badge">📍 {{ subject.room }}</span>
+            <span class="badge">⏰ {{ subject.schedule }}</span>
+            <span class="badge">👥 {{ subject.enrolledStudents.length }} Students</span>
+          </div>
+        </div>
+        <a [routerLink]="['/instructor/subject', subject.id]" class="view-btn">View Details →</a>
+      </div>
+
+      <div *ngIf="subjects.length === 0" class="empty-state">
+        <p>No subjects assigned yet.</p>
+      </div>
+    </div>
+  </div>
+</div>

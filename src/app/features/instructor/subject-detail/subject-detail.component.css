@@ -1,0 +1,67 @@
+.subject-detail-container {
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px;
+  margin: 32px auto;
+  max-width: 900px;
+  box-shadow: 0 4px 24px rgba(59, 130, 246, 0.08);
+}
+.subject-header {
+  margin-bottom: 24px;
+}
+.subject-header h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #3b82f6;
+}
+.subject-meta {
+  color: #666;
+  font-size: 14px;
+  margin-top: 8px;
+  display: flex;
+  gap: 24px;
+}
+.subject-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.subject-tabs button {
+  background: #e0e7ff;
+  color: #3b82f6;
+  border: none;
+  border-radius: 6px 6px 0 0;
+  padding: 10px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.subject-tabs button.active {
+  background: #3b82f6;
+  color: #fff;
+}
+.students-table, .attendance-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+.students-table th, .students-table td, .attendance-table th, .attendance-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+}
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #8b5cf6;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+}
+.attendance-table th, .attendance-table td {
+  font-size: 14px;
+}

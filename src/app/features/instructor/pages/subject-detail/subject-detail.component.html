@@ -1,0 +1,114 @@
+<div class="container">
+  <app-sidebar></app-sidebar>
+
+  <div class="main-content" *ngIf="subject">
+    <header class="page-header">
+      <button class="back-btn" (click)="goBack()" title="Go back to subjects">← Back</button>
+      <h1>{{ subject.code }} - {{ subject.name }}</h1>
+      <p>{{ subject.description }}</p>
+    </header>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button [class.active]="currentTab === 'info'" (click)="setTab('info')" class="tab-btn">
+        ℹ️ Course Info
+      </button>
+      <button [class.active]="currentTab === 'students'" (click)="setTab('students')" class="tab-btn">
+        👥 Students ({{ students.length }})
+      </button>
+      <button [class.active]="currentTab === 'attendance'" (click)="setTab('attendance')" class="tab-btn">
+        📊 Attendance Log
+      </button>
+    </div>
+
+    <!-- Info Tab -->
+    <div *ngIf="currentTab === 'info'" class="tab-content">
+      <div class="info-grid">
+        <div class="info-card">
+          <h3>Course Details</h3>
+          <div class="info-item">
+            <span class="label">Code:</span>
+            <span class="value">{{ subject.code }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Name:</span>
+            <span class="value">{{ subject.name }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Description:</span>
+            <span class="value">{{ subject.description }}</span>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h3>Schedule & Location</h3>
+          <div class="info-item">
+            <span class="label">Schedule:</span>
+            <span class="value">{{ subject.schedule }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Room:</span>
+            <span class="value">{{ subject.room }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Semester:</span>
+            <span class="value">{{ subject.semester }}</span>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h3>Enrollment</h3>
+          <div class="info-item">
+            <span class="label">Total Students:</span>
+            <span class="value">{{ subject.enrolledStudents.length }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Students Tab -->
+    <div *ngIf="currentTab === 'students'" class="tab-content">
+      <div class="students-list">
+        <div *ngFor="let student of students" class="student-card">
+          <div class="student-avatar">{{ student.name.charAt(0) }}</div>
+          <div class="student-info">
+            <h4>{{ student.name }}</h4>
+            <p>{{ student.studentId }} • {{ student.email }}</p>
+          </div>
+        </div>
+        <div *ngIf="students.length === 0" class="empty-state">
+          No students enrolled yet.
+        </div>
+      </div>
+    </div>
+
+    <!-- Attendance Tab -->
+    <div *ngIf="currentTab === 'attendance'" class="tab-content">
+      <div class="attendance-table-wrapper">
+        <table class="attendance-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let record of attendance">
+              <td>{{ getStudentName(record.studentId) }}</td>
+              <td>{{ record.date | date: 'mediumDate' }}</td>
+              <td><span [class]="'status status-' + record.status">{{ record.status | uppercase }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div *ngIf="attendance.length === 0" class="empty-state">
+          No attendance records yet.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-content" *ngIf="!subject">
+    <p class="error">Subject not found.</p>
+  </div>
+</div>

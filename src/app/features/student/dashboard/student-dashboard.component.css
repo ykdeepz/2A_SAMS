@@ -1,0 +1,72 @@
+.student-dashboard-container {
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px;
+  margin: 32px auto;
+  max-width: 700px;
+  box-shadow: 0 4px 24px rgba(59, 130, 246, 0.08);
+}
+.student-header {
+  margin-bottom: 24px;
+}
+.student-header h1 {
+  margin: 0;
+  font-size: 26px;
+  color: #3b82f6;
+}
+.student-meta {
+  color: #666;
+  font-size: 14px;
+  margin-top: 8px;
+  display: flex;
+  gap: 24px;
+}
+.qr-section {
+  margin-bottom: 32px;
+  text-align: center;
+}
+.qr-section h2 {
+  color: #8b5cf6;
+}
+.qr-actions {
+  margin: 12px 0;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+.qr-actions button {
+  background: #e0e7ff;
+  color: #3b82f6;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.qr-actions button:hover {
+  background: #3b82f6;
+  color: #fff;
+}
+.qr-instructions {
+  font-size: 13px;
+  color: #666;
+  margin-top: 8px;
+}
+.subjects-section {
+  margin-bottom: 32px;
+}
+.attendance-section {
+  margin-bottom: 32px;
+}
+.attendance-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+.attendance-table th, .attendance-table td {
+  padding: 8px 6px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  font-size: 14px;
+}

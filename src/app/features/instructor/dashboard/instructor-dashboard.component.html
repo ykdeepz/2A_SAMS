@@ -1,0 +1,174 @@
+<div class="dashboard-container">
+  <!-- Sidebar only appears when showSidebar is true -->
+  <app-sidebar *ngIf="showSidebar" [currentUser]="currentUser"></app-sidebar>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Profile Avatar to toggle sidebar -->
+    <div class="profile-toggle" (click)="toggleSidebar()">
+      <img *ngIf="currentUser?.avatar" [src]="currentUser?.avatar" class="sidebar-avatar" alt="Avatar" />
+      <span>{{ currentUser?.name }}</span>
+      <span class="profile-caret">▼</span>
+    </div>
+    <!-- Confirmation Alert -->
+    <div *ngIf="showConfirmation" class="confirmation-alert">
+      {{ confirmationMessage }}
+    </div>
+
+    <!-- Header -->
+    <header class="dashboard-header">
+      <h1>Welcome, {{ currentUser?.name }}! 👋</h1>
+      <p class="subtitle">Here's your attendance dashboard for today</p>
+    </header>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">📚</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ getStats().totalSubjects }}</div>
+          <div class="stat-label">Total Subjects</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ getStats().totalStudents }}</div>
+          <div class="stat-label">Total Students</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ getStats().avgClassSize }}</div>
+          <div class="stat-label">Avg Class Size</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">📅</div>
+        <div class="stat-content">
+          <div class="stat-value">Spring</div>
+          <div class="stat-label">{{ getStats().activeSemester }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manual Attendance Entry Section -->
+    <section class="section">
+      <div class="section-header">
+        <h2>📋 Mark Attendance</h2>
+        <button class="toggle-btn" (click)="toggleManualAttendanceMode()">
+          {{ manualAttendanceMode ? 'Hide' : 'Show' }} Form
+        </button>
+      </div>
+      <div *ngIf="manualAttendanceMode" class="attendance-form">
+        <div class="form-group">
+          <label>Select Subject:</label>
+          <select [(ngModel)]="selectedSubjectId" class="form-control">
+            <option value="">-- Choose a Subject --</option>
+            <option *ngFor="let subject of subjects" [value]="subject.id">
+              {{ subject.code }} - {{ subject.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Select Student:</label>
+          <select [(ngModel)]="selectedStudentId" class="form-control">
+            <option value="">-- Choose a Student --</option>
+            <option *ngFor="let student of getEnrolledStudents()" [value]="student.id">
+              {{ student.name }} ({{ student.studentId }})
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Attendance Status:</label>
+          <select [(ngModel)]="attendanceStatus" class="form-control">
+            <option value="present">Present</option>
+            <option value="absent">Absent</option>
+            <option value="late">Late</option>
+          </select>
+        </div>
+
+        <button class="btn btn-primary" (click)="markAttendanceManually()" 
+                [disabled]="!selectedStudentId || !selectedSubjectId">
+          ✓ Mark Attendance
+        </button>
+      </div>
+    </section>
+
+    <!-- Today's Schedule -->
+    <section class="section">
+      <h2>Today's Schedule</h2>
+      <div class="schedule-list">
+        <div *ngFor="let subject of getTodaySchedule()" class="schedule-item">
+          <div class="schedule-time">{{ subject.schedule }}</div>
+          <div class="schedule-details">
+            <h3>{{ subject.code }} - {{ subject.name }}</h3>
+            <p>Room {{ subject.room }} • {{ subject.enrolledStudents.length }} Students</p>
+          </div>
+          <div class="schedule-status">Ready</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- My Subjects Grid -->
+    <section class="section">
+      <h2>My Subjects</h2>
+      <div class="subjects-grid">
+        <div
+          *ngFor="let subject of subjects; let i = index"
+          class="subject-card"
+          [style.border-top-color]="getSubjectColor(i)"
+        >
+          <div class="subject-header">
+            <div class="subject-code">{{ subject.code }}</div>
+            <div class="student-count">{{ subject.enrolledStudents.length }} 👥</div>
+          </div>
+          <h3>{{ subject.name }}</h3>
+          <p class="subject-schedule">{{ subject.schedule }}</p>
+          <p class="subject-room">📍 {{ subject.room }}</p>
+          <div class="student-avatars">
+            <span
+              *ngFor="let studentId of subject.enrolledStudents.slice(0, 3); let i = index"
+              class="avatar"
+              [title]="getStudentName(studentId)"
+            >
+              {{ getStudentName(studentId).charAt(0) }}
+            </span>
+            <span
+              *ngIf="subject.enrolledStudents.length > 3"
+              class="avatar more"
+              [title]="'+' + (subject.enrolledStudents.length - 3) + ' more'"
+            >
+              +{{ subject.enrolledStudents.length - 3 }}
+            </span>
+          </div>
+          <a [routerLink]="['/instructor/subject', subject.id]" class="view-link">View Details →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recent Attendance Activity -->
+    <section class="section">
+      <h2>Recent Attendance Activity</h2>
+      <div class="attendance-log">
+        <div *ngFor="let record of recentAttendance.slice(0, 10)" class="attendance-item">
+          <div class="attendance-time">{{ record.markedAt | date : 'short' }}</div>
+          <div class="attendance-info">
+            <span class="student-name">{{ getStudentName(record.studentId) }}</span>
+            <span class="subject-code">{{ getSubjectName(record.subjectId) }}</span>
+          </div>
+          <div [class]="'status status-' + record.status">{{ record.status | uppercase }}</div>
+        </div>
+        <div *ngIf="recentAttendance.length === 0" class="empty-state">
+          No attendance records yet. Start marking attendance!
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
