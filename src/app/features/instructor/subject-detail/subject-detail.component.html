@@ -1,0 +1,71 @@
+<div class="subject-detail-container" *ngIf="subject">
+  <header class="subject-header">
+    <h1>{{ subject.code }} - {{ subject.name }}</h1>
+    <div class="subject-meta">
+      <span>Room: {{ subject.room }}</span>
+      <span>Semester: {{ subject.semester }}</span>
+      <span>Schedule: {{ subject.schedule }}</span>
+    </div>
+  </header>
+
+  <nav class="subject-tabs">
+    <button [class.active]="selectedTab === 'students'" (click)="onTabChange('students')">Students</button>
+    <button [class.active]="selectedTab === 'attendance'" (click)="onTabChange('attendance')">Attendance</button>
+    <button [class.active]="selectedTab === 'overview'" (click)="onTabChange('overview')">Overview</button>
+  </nav>
+
+  <section *ngIf="selectedTab === 'students'">
+    <h2>Enrolled Students</h2>
+    <table class="students-table">
+      <thead>
+        <tr>
+          <th>Avatar</th>
+          <th>Name</th>
+          <th>ID</th>
+          <th>Email</th>
+          <th>Enrolled Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let student of students">
+          <td><span class="avatar">{{ student.name.charAt(0) }}</span></td>
+          <td>{{ student.name }}</td>
+          <td>{{ student.studentId }}</td>
+          <td>{{ student.email }}</td>
+          <td>{{ student.enrolledDate }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section *ngIf="selectedTab === 'attendance'">
+    <h2>Attendance Records</h2>
+    <label>Date: <input type="date" [(ngModel)]="selectedDate" (change)="onDateChange(selectedDate)" /></label>
+    <table class="attendance-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>ID</th>
+          <th>Status</th>
+          <th>Time</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let record of attendance">
+          <td>{{ getStudentById(record.studentId)?.name }}</td>
+          <td>{{ getStudentById(record.studentId)?.studentId }}</td>
+          <td>{{ record.status }}</td>
+          <td>{{ record.markedAt | date:'shortTime' }}</td>
+          <td>{{ record.notes }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section *ngIf="selectedTab === 'overview'">
+    <h2>Subject Overview</h2>
+    <p>{{ subject.description }}</p>
+    <!-- Add more analytics here -->
+  </section>
+</div>

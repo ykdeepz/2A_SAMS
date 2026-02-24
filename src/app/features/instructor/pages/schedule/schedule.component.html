@@ -1,0 +1,49 @@
+<div class="container">
+  <app-sidebar [currentUser]="currentUser"></app-sidebar>
+
+  <div class="main-content">
+    <header class="page-header">
+      <button class="back-btn" (click)="goBack()" title="Go back to dashboard">← Back</button>
+      <h1>📅 Weekly Schedule</h1>
+      <p>Your course schedule for Spring 2026</p>
+    </header>
+
+    <div class="schedule-grid">
+      <div *ngFor="let day of weekDays" class="day-column">
+        <div class="day-header">{{ day }}</div>
+        <div class="day-content">
+          <div *ngFor="let subject of getSubjectsForDay(day)" 
+               class="schedule-block" 
+               [style.background-color]="getSubjectColor(subject)">
+            <div class="block-code">{{ subject.code }}</div>
+            <div class="block-name">{{ subject.name }}</div>
+            <div class="block-time">{{ extractTime(subject.schedule) }}</div>
+            <div class="block-room">{{ subject.room }}</div>
+            <div class="block-students">{{ subject.enrolledStudents.length }} students</div>
+          </div>
+          <div *ngIf="getSubjectsForDay(day).length === 0" class="empty-day">
+            No classes
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="all-classes">
+      <h2>All Your Classes</h2>
+      <div class="classes-list">
+        <div *ngFor="let subject of subjects" class="class-card">
+          <div class="card-color" [style.background-color]="getSubjectColor(subject)"></div>
+          <div class="card-content">
+            <h3>{{ subject.code }} - {{ subject.name }}</h3>
+            <p>{{ subject.schedule }}</p>
+            <p class="room">📍 {{ subject.room }}</p>
+          </div>
+          <div class="card-students">{{ subject.enrolledStudents.length }}<br><span>Students</span></div>
+        </div>
+        <div *ngIf="subjects.length === 0" class="empty-state">
+          No classes scheduled for this semester.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

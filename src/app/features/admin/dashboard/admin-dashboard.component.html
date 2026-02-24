@@ -1,0 +1,243 @@
+<div class="admin-dashboard">
+  <div class="admin-header">
+    <h1>SAMS - Admin Dashboard</h1>
+    <div class="admin-info">
+      <span>Welcome, {{ currentUser?.name || 'Admin' }}</span>
+      <button (click)="logout()" class="logout-btn">Logout</button>
+    </div>
+  </div>
+
+  <div class="admin-message" [style.color]="messageColor" *ngIf="message">
+    {{ message }}
+  </div>
+
+  <div class="admin-tabs">
+    <button
+      [class.active]="activeTab === 'dashboard'"
+      (click)="switchTab('dashboard')"
+      class="tab-btn"
+    >
+      DASHBOARD
+    </button>
+    <button
+      [class.active]="activeTab === 'users'"
+      (click)="switchTab('users')"
+      class="tab-btn"
+    >
+      USERS
+    </button>
+    <button
+      [class.active]="activeTab === 'subjects'"
+      (click)="switchTab('subjects')"
+      class="tab-btn"
+    >
+      SUBJECTS
+    </button>
+    <button
+      [class.active]="activeTab === 'attendance'"
+      (click)="switchTab('attendance')"
+      class="tab-btn"
+    >
+      ATTENDANCE
+    </button>
+    <button
+      [class.active]="activeTab === 'reports'"
+      (click)="switchTab('reports')"
+      class="tab-btn"
+    >
+      REPORTS
+    </button>
+  </div>
+
+  <!-- Dashboard Tab -->
+  <div *ngIf="activeTab === 'dashboard'" class="tab-content">
+    <div class="dashboard-stats">
+      <div class="stat-card">
+        <h3>Total Instructors</h3>
+        <p class="stat-number">{{ totalInstructors }}</p>
+      </div>
+      <div class="stat-card">
+        <h3>Total Students</h3>
+        <p class="stat-number">{{ totalStudents }}</p>
+      </div>
+      <div class="stat-card">
+        <h3>Total Parents</h3>
+        <p class="stat-number">{{ totalParents }}</p>
+      </div>
+      <div class="stat-card">
+        <h3>Total Subjects</h3>
+        <p class="stat-number">{{ totalSubjects }}</p>
+      </div>
+    </div>
+
+    <div class="recent-activity">
+      <h2>Recent Attendance Records</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Student ID</th>
+            <th>Subject ID</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let record of allAttendance.slice(0, 10)">
+            <td>{{ record.date | date: 'short' }}</td>
+            <td>{{ record.studentId }}</td>
+            <td>{{ record.subjectId }}</td>
+            <td>
+              <span class="status" [ngClass]="'status-' + record.status">
+                {{ record.status | uppercase }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Users Tab -->
+  <div *ngIf="activeTab === 'users'" class="tab-content">
+    <div class="users-section">
+      <div class="section-header">
+        <h2>Users Management</h2>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Search by name or ID..."
+          class="search-input"
+        />
+      </div>
+
+      <h3>Instructors ({{ getFilteredInstructors().length }})</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let instructor of getFilteredInstructors()">
+            <td>{{ instructor.id }}</td>
+            <td>{{ instructor.name }}</td>
+            <td>{{ instructor.email }}</td>
+            <td>{{ instructor.role }}</td>
+            <td>
+              <button (click)="deleteInstructor(instructor.id)" class="delete-btn">
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Students ({{ getFilteredStudents().length }})</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Student ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let student of getFilteredStudents()">
+            <td>{{ student.studentId }}</td>
+            <td>{{ student.name }}</td>
+            <td>{{ student.email }}</td>
+            <td>{{ student.phone }}</td>
+            <td>
+              <button (click)="deleteStudent(student.studentId)" class="delete-btn">
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Subjects Tab -->
+  <div *ngIf="activeTab === 'subjects'" class="tab-content">
+    <div class="subjects-section">
+      <div class="section-header">
+        <h2>Subjects Management</h2>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Search by name or code..."
+          class="search-input"
+        />
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Subject Name</th>
+            <th>Instructor ID</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let subject of getFilteredSubjects()">
+            <td>{{ subject.code }}</td>
+            <td>{{ subject.name }}</td>
+            <td>{{ subject.instructorId }}</td>
+            <td>
+              <button (click)="deleteSubject(subject.id)" class="delete-btn">
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Attendance Tab -->
+  <div *ngIf="activeTab === 'attendance'" class="tab-content">
+    <div class="attendance-section">
+      <h2>Attendance Records</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Student ID</th>
+            <th>Subject ID</th>
+            <th>Status</th>
+            <th>Marked By</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let record of allAttendance">
+            <td>{{ record.date | date: 'short' }}</td>
+            <td>{{ record.studentId }}</td>
+            <td>{{ record.subjectId }}</td>
+            <td>
+              <span class="status" [ngClass]="'status-' + record.status">
+                {{ record.status | uppercase }}
+              </span>
+            </td>
+            <td>{{ record.markedBy }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Reports Tab -->
+  <div *ngIf="activeTab === 'reports'" class="tab-content">
+    <div class="reports-section">
+      <h2>Reports & Analytics</h2>
+      <p>Reports and analytics features coming soon...</p>
+    </div>
+  </div>
+</div>

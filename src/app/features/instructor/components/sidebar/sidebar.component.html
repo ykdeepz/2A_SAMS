@@ -1,0 +1,20 @@
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">📚</div>
+    <div class="sidebar-app-name">SAMS</div>
+  </div>
+  <div class="sidebar-profile">
+    <img *ngIf="currentUser?.avatar" [src]="currentUser?.avatar" class="sidebar-avatar" alt="Avatar" />
+    <div class="sidebar-user-info">
+      <div class="sidebar-user-name">{{ currentUser?.name }}</div>
+      <div class="sidebar-user-role">{{ currentUser?.role | titlecase }}</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <a routerLink="/instructor/dashboard" routerLinkActive="active">Dashboard</a>
+    <a routerLink="/instructor/subjects" routerLinkActive="active">My Subjects</a>
+    <a routerLink="/instructor/schedule" routerLinkActive="active">Schedule</a>
+    <a routerLink="/instructor/settings" routerLinkActive="active">Settings</a>
+    <a routerLink="/logout">Logout</a>
+  </nav>
+</aside>
