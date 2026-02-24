@@ -1,0 +1,58 @@
+<!-- src/app/shared/components/sidebar/sidebar.component.html -->
+
+<nav class="sidebar" [class.collapsed]="!isOpen">
+  <!-- Sidebar Header -->
+  <div class="sidebar-header">
+    <div class="logo" *ngIf="isOpen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"></path>
+      </svg>
+      <span>SAMS</span>
+    </div>
+    <button class="toggle-btn" (click)="toggleSidebar()">
+      <svg [attr.viewBox]="isOpen ? '0 0 24 24' : '0 0 24 24'" fill="none" stroke="currentColor" stroke-width="2">
+        <line *ngIf="isOpen" x1="5" y1="12" x2="19" y2="12"></line>
+        <line *ngIf="isOpen" x1="12" y1="5" x2="12" y2="19"></line>
+        <path *ngIf="!isOpen" d="M3 6h18M3 12h18M3 18h18"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- User Profile -->
+  <div class="user-profile" *ngIf="currentUser && isOpen">
+    <div class="user-avatar">
+      <img [src]="currentUser.avatar" [alt]="currentUser.name" />
+    </div>
+    <div class="user-info">
+      <h3>{{ currentUser.name }}</h3>
+      <p>{{ currentUser.role | titlecase }}</p>
+    </div>
+  </div>
+
+  <!-- Navigation Menu -->
+  <ul class="nav-menu">
+    <li *ngFor="let item of currentMenuItems" class="nav-item">
+      <a
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        class="nav-link"
+        [title]="item.label"
+      >
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path [attr.d]="getIcon(item.icon)"></path>
+        </svg>
+        <span *ngIf="isOpen" class="nav-label">{{ item.label }}</span>
+      </a>
+    </li>
+  </ul>
+
+  <!-- Logout Button -->
+  <div class="sidebar-footer" *ngIf="isOpen">
+    <button class="logout-btn" (click)="onLogout()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 3l7 7-7 7M21 10H9"></path>
+      </svg>
+      <span>Logout</span>
+    </button>
+  </div>
+</nav>

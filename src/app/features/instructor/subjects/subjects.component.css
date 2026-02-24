@@ -1,0 +1,81 @@
+/* src/app/features/instructor/subjects/subjects.component.css */
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f7fafc;
+}
+
+.main-content {
+  margin-left: 260px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.header {
+  background: white;
+  padding: 30px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #1a202c;
+}
+
+.content {
+  padding: 30px;
+}
+
+.subjects-list {
+  display: grid;
+  gap: 16px;
+}
+
+.subject-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.subject-item:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.subject-color {
+  width: 6px;
+  height: 60px;
+  border-radius: 3px;
+}
+
+.subject-details h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #1a202c;
+}
+
+.subject-details p {
+  margin: 4px 0;
+  font-size: 13px;
+  color: #718096;
+}
+
+.loading,
+.empty {
+  text-align: center;
+  padding: 40px;
+  color: #718096;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+  }
+}

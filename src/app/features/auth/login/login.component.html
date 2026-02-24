@@ -1,0 +1,140 @@
+<!-- src/app/features/auth/login/login.component.html -->
+
+<div class="login-container">
+  <div class="login-wrapper">
+    <!-- Header -->
+    <div class="login-header">
+      <div class="logo">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"></path>
+        </svg>
+        <h1>SAMS</h1>
+      </div>
+      <p class="tagline">Student Attendance Management System</p>
+    </div>
+
+    <!-- Role Selection -->
+    <div class="role-selector">
+      <label class="role-label">Select Your Role:</label>
+      <div class="role-tabs">
+        <button
+          *ngFor="let role of roles"
+          [class.active]="selectedRole === role.value"
+          (click)="selectRole(role.value)"
+          class="role-tab"
+        >
+          {{ role.label }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Login Form -->
+    <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="login-form">
+      <!-- Error Message -->
+      <div *ngIf="errorMessage" class="error-message">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        {{ errorMessage }}
+      </div>
+
+      <!-- Email Field -->
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          class="form-input"
+          placeholder="Enter your email"
+          [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+        />
+        <span
+          *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+          class="error-text"
+        >
+          Please enter a valid email
+        </span>
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <div class="password-header">
+          <label for="password" class="form-label">Password</label>
+          <a href="#" class="forgot-password">Forgot Password?</a>
+        </div>
+        <div class="password-input-wrapper">
+          <input
+            id="password"
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
+            class="form-input"
+            placeholder="Enter your password"
+            [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="togglePasswordVisibility()"
+            title="{{ showPassword ? 'Hide' : 'Show' }} password"
+          >
+            <svg *ngIf="!showPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <svg *ngIf="showPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.26 3.64m-5.88-2.88a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Remember Me -->
+      <div class="form-group checkbox">
+        <input
+          id="rememberMe"
+          type="checkbox"
+          formControlName="rememberMe"
+          (change)="rememberMe = !rememberMe"
+        />
+        <label for="rememberMe">Remember me on this device</label>
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="btn-login"
+        [disabled]="isLoading || loginForm.invalid"
+      >
+        <span *ngIf="!isLoading">Sign In</span>
+        <span *ngIf="isLoading">Signing in...</span>
+      </button>
+
+      <!-- Demo Credentials Button -->
+      <button
+        type="button"
+        class="btn-demo"
+        (click)="fillDemoCredentials()"
+        [disabled]="isLoading"
+      >
+        Fill Demo Credentials
+      </button>
+    </form>
+
+    <!-- Sign Up Link -->
+    <div class="signup-link">
+      Don't have an account?
+      <button (click)="navigateToSignup()" class="link-button">
+        Sign Up Now
+      </button>
+    </div>
+
+    <!-- Footer -->
+    <div class="login-footer">
+      <p>&copy; 2026 SAMS. All rights reserved.</p>
+    </div>
+  </div>
+</div>

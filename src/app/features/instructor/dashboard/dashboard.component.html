@@ -1,0 +1,172 @@
+<!-- src/app/features/instructor/dashboard/dashboard.component.html -->
+
+<div class="instructor-dashboard">
+  <!-- Sidebar -->
+  <app-sidebar [currentUser]="currentUser" (logout)="onLogout()"></app-sidebar>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Header -->
+    <div class="dashboard-header">
+      <div class="header-content">
+        <h1>Welcome, {{ currentUser?.name | titlecase }}!</h1>
+        <p class="subtitle">{{ stats.activeSemester }} - Instructor Dashboard</p>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Loading dashboard...</p>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div *ngIf="!isLoading" class="dashboard-content">
+      <!-- Statistics Cards -->
+      <div class="stats-section">
+        <h2 class="section-title">Quick Statistics</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon" style="background: #ede9fe; color: #667eea;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"></path>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <p class="stat-label">Total Subjects</p>
+              <p class="stat-value">{{ stats.totalSubjects }}</p>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon" style="background: #dbeafe; color: #3b82f6;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <p class="stat-label">Total Students</p>
+              <p class="stat-value">{{ stats.totalStudents }}</p>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon" style="background: #f0fdf4; color: #10b981;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"></path>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <p class="stat-label">Avg. Class Size</p>
+              <p class="stat-value">{{ stats.averageClassSize }}</p>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon" style="background: #fef3c7; color: #f59e0b;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <p class="stat-label">Semester</p>
+              <p class="stat-value">{{ stats.activeSemester }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subjects Section -->
+      <div class="subjects-section">
+        <div class="section-header">
+          <h2 class="section-title">My Subjects</h2>
+          <a href="/instructor/subjects" class="view-all-link">View All</a>
+        </div>
+
+        <div *ngIf="subjects.length > 0; else noSubjects" class="subjects-grid">
+          <div
+            *ngFor="let subject of subjects"
+            class="subject-card"
+            (click)="navigateToSubject(subject.id)"
+          >
+            <div class="subject-header" [style.backgroundColor]="subject.color">
+              <h3>{{ subject.code }}</h3>
+            </div>
+            <div class="subject-content">
+              <h4>{{ subject.name }}</h4>
+              <p class="schedule">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                {{ subject.schedule }}
+              </p>
+              <p class="room">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                  <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                {{ subject.room }}
+              </p>
+              <div class="subject-footer">
+                <span class="student-count">{{ subject.enrolledStudents.length }} Students</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noSubjects>
+          <div class="empty-state">
+            <p>No subjects assigned yet.</p>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- Recent Attendance Section -->
+      <div class="attendance-section">
+        <div class="section-header">
+          <h2 class="section-title">Recent Attendance Activity</h2>
+        </div>
+
+        <div *ngIf="recentAttendance.length > 0; else noAttendance" class="attendance-table">
+          <div class="table-header">
+            <div class="col col-time">Time</div>
+            <div class="col col-student">Student</div>
+            <div class="col col-subject">Subject</div>
+            <div class="col col-status">Status</div>
+          </div>
+          <div *ngFor="let record of recentAttendance" class="table-row">
+            <div class="col col-time">
+              {{ record.markedAt | date: 'short' }}
+            </div>
+            <div class="col col-student">
+              Student #{{ record.studentId }}
+            </div>
+            <div class="col col-subject">
+              Subject #{{ record.subjectId }}
+            </div>
+            <div class="col col-status">
+              <span [class]="'badge ' + getStatusBadgeClass(record.status)">
+                {{ getStatusLabel(record.status) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noAttendance>
+          <div class="empty-state">
+            <p>No attendance records yet.</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</div>

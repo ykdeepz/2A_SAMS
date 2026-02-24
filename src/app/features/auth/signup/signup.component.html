@@ -1,0 +1,220 @@
+<!-- src/app/features/auth/signup/signup.component.html -->
+
+<div class="signup-container">
+  <div class="signup-wrapper">
+    <!-- Header -->
+    <div class="signup-header">
+      <div class="logo">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"></path>
+        </svg>
+        <h1>SAMS</h1>
+      </div>
+      <p class="tagline">Create Your Account</p>
+    </div>
+
+    <!-- Role Selection -->
+    <div class="role-selector">
+      <label class="role-label">Select Your Role:</label>
+      <div class="role-tabs">
+        <button
+          *ngFor="let role of roles"
+          [class.active]="selectedRole === role.value"
+          (click)="selectRole(role.value)"
+          class="role-tab"
+        >
+          {{ role.label }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Signup Form -->
+    <form [formGroup]="signupForm" (ngSubmit)="onSignUp()" class="signup-form">
+      <!-- Error Message -->
+      <div *ngIf="errorMessage" class="error-message">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        {{ errorMessage }}
+      </div>
+
+      <!-- Success Message -->
+      <div *ngIf="successMessage" class="success-message">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        {{ successMessage }}
+      </div>
+
+      <!-- Full Name -->
+      <div class="form-group">
+        <label for="name" class="form-label">Full Name</label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          class="form-input"
+          placeholder="Enter your full name"
+          [class.error]="signupForm.get('name')?.invalid && signupForm.get('name')?.touched"
+        />
+        <span
+          *ngIf="signupForm.get('name')?.invalid && signupForm.get('name')?.touched"
+          class="error-text"
+        >
+          Name is required (minimum 2 characters)
+        </span>
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          class="form-input"
+          placeholder="Enter your email"
+          [class.error]="signupForm.get('email')?.invalid && signupForm.get('email')?.touched"
+        />
+        <span
+          *ngIf="signupForm.get('email')?.invalid && signupForm.get('email')?.touched"
+          class="error-text"
+        >
+          Please enter a valid email
+        </span>
+      </div>
+
+      <!-- Department (Instructors only) -->
+      <div *ngIf="selectedRole === 'instructor'" class="form-group">
+        <label for="department" class="form-label">Department</label>
+        <input
+          id="department"
+          type="text"
+          formControlName="department"
+          class="form-input"
+          placeholder="e.g., Computer Science"
+        />
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <div class="password-input-wrapper">
+          <input
+            id="password"
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
+            class="form-input"
+            placeholder="Enter your password (minimum 6 characters)"
+            [class.error]="signupForm.get('password')?.invalid && signupForm.get('password')?.touched"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="togglePasswordVisibility('password')"
+          >
+            <svg *ngIf="!showPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <svg *ngIf="showPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.26 3.64m-5.88-2.88a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </button>
+        </div>
+        <span
+          *ngIf="signupForm.get('password')?.invalid && signupForm.get('password')?.touched"
+          class="error-text"
+        >
+          Password is required (minimum 6 characters)
+        </span>
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="form-group">
+        <label for="confirmPassword" class="form-label">Confirm Password</label>
+        <div class="password-input-wrapper">
+          <input
+            id="confirmPassword"
+            [type]="showConfirmPassword ? 'text' : 'password'"
+            formControlName="confirmPassword"
+            class="form-input"
+            placeholder="Re-enter your password"
+            [class.error]="
+              (signupForm.get('confirmPassword')?.invalid ||
+                signupForm.hasError('passwordMismatch')) &&
+              signupForm.get('confirmPassword')?.touched
+            "
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="togglePasswordVisibility('confirmPassword')"
+          >
+            <svg *ngIf="!showConfirmPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <svg *ngIf="showConfirmPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.26 3.64m-5.88-2.88a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </button>
+        </div>
+        <span
+          *ngIf="signupForm.hasError('passwordMismatch') && signupForm.get('confirmPassword')?.touched"
+          class="error-text"
+        >
+          Passwords do not match
+        </span>
+      </div>
+
+      <!-- Terms Agreement -->
+      <div class="form-group checkbox">
+        <input
+          id="agreeTerms"
+          type="checkbox"
+          formControlName="agreeTerms"
+        />
+        <label for="agreeTerms">
+          I agree to the
+          <a href="#" class="terms-link">Terms of Service</a>
+          and
+          <a href="#" class="terms-link">Privacy Policy</a>
+        </label>
+      </div>
+      <span
+        *ngIf="signupForm.get('agreeTerms')?.invalid && signupForm.get('agreeTerms')?.touched"
+        class="error-text"
+      >
+        You must agree to the terms
+      </span>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="btn-signup"
+        [disabled]="isLoading || signupForm.invalid"
+      >
+        <span *ngIf="!isLoading">Create Account</span>
+        <span *ngIf="isLoading">Creating Account...</span>
+      </button>
+    </form>
+
+    <!-- Login Link -->
+    <div class="login-link">
+      Already have an account?
+      <button (click)="navigateToLogin()" class="link-button">
+        Sign In
+      </button>
+    </div>
+
+    <!-- Footer -->
+    <div class="signup-footer">
+      <p>&copy; 2026 SAMS. All rights reserved.</p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,30 @@
+<!-- src/app/features/instructor/subjects/subjects.component.html -->
+
+<div class="layout">
+  <app-sidebar [currentUser]="currentUser" (logout)="onLogout()"></app-sidebar>
+  
+  <div class="main-content">
+    <div class="header">
+      <h1>My Subjects</h1>
+    </div>
+
+    <div class="content">
+      <div *ngIf="isLoading" class="loading">Loading...</div>
+      
+      <div *ngIf="!isLoading && subjects.length > 0" class="subjects-list">
+        <div *ngFor="let subject of subjects" class="subject-item" (click)="navigateToSubject(subject.id)">
+          <div class="subject-color" [style.backgroundColor]="subject.color"></div>
+          <div class="subject-details">
+            <h3>{{ subject.code }} - {{ subject.name }}</h3>
+            <p>{{ subject.schedule }}</p>
+            <p>{{ subject.enrolledStudents.length }} Students</p>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="!isLoading && subjects.length === 0" class="empty">
+        <p>No subjects found</p>
+      </div>
+    </div>
+  </div>
+</div>
