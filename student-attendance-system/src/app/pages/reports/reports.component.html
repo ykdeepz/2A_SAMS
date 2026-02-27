@@ -1,0 +1,86 @@
+<div class="space-y-6">
+  <h2 class="text-2xl font-bold text-slate-800">Reports</h2>
+
+  <!-- Filters -->
+  <div class="bg-white rounded-xl border shadow p-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium mb-2">Subject</label>
+        <select [(ngModel)]="filterSubject" class="w-full px-3 py-2 border border-input rounded-md">
+          <option value="">All Subjects</option>
+          @for (subject of subjects(); track subject.subject_id) {
+            <option [value]="subject.subject_id">{{subject.subject_name}}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-2">Date Range</label>
+        <select [(ngModel)]="dateRange" class="w-full px-3 py-2 border border-input rounded-md">
+          <option value="7">Last 7 days</option>
+          <option value="30">Last 30 days</option>
+          <option value="90">Last 90 days</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    @for (stat of statusStats(); track stat.label) {
+      <div class="bg-white rounded-xl border shadow p-6">
+        <p class="text-sm text-slate-600">{{stat.label}}</p>
+        <p class="text-3xl font-bold mt-2" [style.color]="stat.color">{{stat.value}}</p>
+        <p class="text-sm text-slate-500 mt-1">{{stat.percentage}}%</p>
+      </div>
+    }
+  </div>
+
+  <!-- Charts -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Bar Chart -->
+    <div class="bg-white rounded-xl border shadow p-6">
+      <h3 class="text-lg font-semibold mb-4">Attendance by Status</h3>
+      <div class="space-y-3">
+        @for (item of statusStats(); track item.label) {
+          <div>
+            <div class="flex justify-between text-sm mb-1">
+              <span>{{item.label}}</span>
+              <span class="font-semibold">{{item.value}}</span>
+            </div>
+            <div class="w-full bg-slate-200 rounded-full h-3">
+              <div [style.width.%]="item.percentage" [style.background-color]="item.color"
+                   class="h-3 rounded-full transition-all duration-300"></div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Pie Chart (Visual) -->
+    <div class="bg-white rounded-xl border shadow p-6">
+      <h3 class="text-lg font-semibold mb-4">Status Distribution</h3>
+      <div class="flex items-center justify-center h-64">
+        <div class="relative w-48 h-48">
+          @for (item of statusStats(); track item.label; let i = $index) {
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div [style.width.px]="180 - (i * 30)" [style.height.px]="180 - (i * 30)"
+                   [style.background-color]="item.color"
+                   class="rounded-full opacity-80"></div>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="mt-4 space-y-2">
+        @for (item of statusStats(); track item.label) {
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div [style.background-color]="item.color" class="w-4 h-4 rounded"></div>
+              <span class="text-sm">{{item.label}}</span>
+            </div>
+            <span class="text-sm font-semibold">{{item.percentage}}%</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

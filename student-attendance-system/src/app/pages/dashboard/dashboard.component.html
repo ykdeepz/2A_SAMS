@@ -1,0 +1,43 @@
+<div class="space-y-6">
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    @for (stat of stats(); track stat.label) {
+      <div class="bg-white rounded-xl border shadow p-6 hover:shadow-lg transition-shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-slate-600">{{stat.label}}</p>
+            <p class="text-3xl font-bold text-slate-800 mt-2">{{stat.value}}</p>
+          </div>
+          <div [class]="'w-12 h-12 rounded-lg flex items-center justify-center text-2xl ' + stat.bgColor">
+            {{stat.icon}}
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="bg-white rounded-xl border shadow p-6">
+    <h3 class="text-lg font-semibold text-slate-800 mb-4">Recent Attendance</h3>
+    @if (recentAttendance().length > 0) {
+      <div class="space-y-3">
+        @for (record of recentAttendance(); track record.attendance_id) {
+          <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+            <div>
+              <p class="font-medium text-slate-800">{{record.student_name}}</p>
+              <p class="text-sm text-slate-600">{{record.subject_name}}</p>
+            </div>
+            <span [class]="getStatusClass(record.status)">
+              {{record.status}}
+            </span>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="text-center py-8 text-slate-500">
+        <p class="text-4xl mb-2">📋</p>
+        <p>No attendance records yet</p>
+      </div>
+    }
+  </div>
+</div>

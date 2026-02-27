@@ -1,0 +1,99 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h2 class="text-2xl font-bold text-slate-800">Subjects</h2>
+    @if (canManage()) {
+      <button (click)="showCreateModal.set(true)" 
+              class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+        + Create Subject
+      </button>
+    }
+  </div>
+
+  <!-- Search -->
+  <input type="text" [(ngModel)]="searchTerm" placeholder="Search subjects..."
+         class="w-full px-4 py-2 border border-input rounded-md">
+
+  <!-- Subjects Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    @for (subject of filteredSubjects(); track subject.subject_id) {
+      <div class="bg-white rounded-xl border shadow p-6 hover:shadow-lg transition-shadow">
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <h3 class="text-lg font-semibold text-slate-800">{{subject.subject_name}}</h3>
+            <p class="text-sm text-slate-600">{{subject.subject_code}}</p>
+          </div>
+          @if (canManage()) {
+            <button (click)="deleteSubject(subject.subject_id)" 
+                    class="text-red-600 hover:text-red-800">
+              🗑️
+            </button>
+          }
+        </div>
+        <div class="space-y-2 text-sm text-slate-600">
+          <p>👨‍🏫 {{subject.instructor_name}}</p>
+          <p>📚 Grade {{subject.grade_level}} - Section {{subject.section}}</p>
+          <p>🕐 {{subject.schedule}}</p>
+          <p class="font-semibold text-indigo-600">
+            {{getEnrolledCount(subject.subject_id)}} students enrolled
+          </p>
+        </div>
+        <a [routerLink]="['/subject', subject.subject_id]"
+           class="mt-4 block text-center px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-md text-sm">
+          View Details
+        </a>
+      </div>
+    } @empty {
+      <div class="col-span-full text-center py-12">
+        <p class="text-4xl mb-4">📚</p>
+        <p class="text-slate-600">No subjects found</p>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Create Modal -->
+@if (showCreateModal()) {
+  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md">
+      <h3 class="text-xl font-bold mb-4">Create Subject</h3>
+      <form (ngSubmit)="createSubject()">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">Subject Name</label>
+            <input type="text" [(ngModel)]="newSubject.subject_name" name="name" required
+                   class="w-full px-3 py-2 border border-input rounded-md">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Subject Code</label>
+            <input type="text" [(ngModel)]="newSubject.subject_code" name="code" required
+                   class="w-full px-3 py-2 border border-input rounded-md">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Grade Level</label>
+            <input type="text" [(ngModel)]="newSubject.grade_level" name="grade" required
+                   class="w-full px-3 py-2 border border-input rounded-md">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Section</label>
+            <input type="text" [(ngModel)]="newSubject.section" name="section" required
+                   class="w-full px-3 py-2 border border-input rounded-md">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Schedule</label>
+            <input type="text" [(ngModel)]="newSubject.schedule" name="schedule" required
+                   class="w-full px-3 py-2 border border-input rounded-md">
+          </div>
+        </div>
+        <div class="flex gap-2 mt-6">
+          <button type="submit" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+            Create
+          </button>
+          <button type="button" (click)="showCreateModal.set(false)"
+                  class="flex-1 px-4 py-2 bg-slate-200 rounded-md hover:bg-slate-300">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

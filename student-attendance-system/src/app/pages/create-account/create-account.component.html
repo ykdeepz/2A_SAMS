@@ -1,0 +1,95 @@
+<div class="space-y-6">
+  <h2 class="text-2xl font-bold text-slate-800">Create Account</h2>
+
+  <div class="bg-white rounded-xl border shadow p-6">
+    <div class="mb-6">
+      <label class="block text-sm font-medium mb-2">Account Type</label>
+      <select [(ngModel)]="accountType" class="w-full px-4 py-2 border border-input rounded-md">
+        <option value="instructor">Instructor</option>
+        <option value="student">Student</option>
+      </select>
+    </div>
+
+    @if (accountType === 'instructor') {
+      <form (ngSubmit)="createInstructor()" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">Full Name</label>
+          <input type="text" [(ngModel)]="instructorForm.full_name" name="name" required
+                 class="w-full px-3 py-2 border border-input rounded-md">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Email</label>
+          <input type="email" [(ngModel)]="instructorForm.email" name="email" required
+                 class="w-full px-3 py-2 border border-input rounded-md">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Phone</label>
+          <input type="tel" [(ngModel)]="instructorForm.phone" name="phone" required
+                 class="w-full px-3 py-2 border border-input rounded-md">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Department</label>
+          <input type="text" [(ngModel)]="instructorForm.department" name="dept" required
+                 class="w-full px-3 py-2 border border-input rounded-md">
+        </div>
+        <button type="submit" class="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+          Create Instructor Account
+        </button>
+      </form>
+    }
+
+    @if (accountType === 'student') {
+      <form (ngSubmit)="createStudent()" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">Full Name</label>
+          <input type="text" [(ngModel)]="studentForm.full_name" name="name" required
+                 class="w-full px-3 py-2 border border-input rounded-md">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Email</label>
+          <input type="email" [(ngModel)]="studentForm.email" name="email" required
+                 class="w-full px-3 py-2 border border-input rounded-md">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Grade Level</label>
+          <input type="text" [(ngModel)]="studentForm.grade_level" name="grade" required
+                 class="w-full px-3 py-2 border border-input rounded-md">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Section</label>
+          <input type="text" [(ngModel)]="studentForm.section" name="section" required
+                 class="w-full px-3 py-2 border border-input rounded-md">
+        </div>
+        <div class="border-t pt-4">
+          <h4 class="font-semibold mb-3">Parent Information</h4>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-sm font-medium mb-1">Parent Name</label>
+              <input type="text" [(ngModel)]="parentForm.full_name" name="pname"
+                     class="w-full px-3 py-2 border border-input rounded-md">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Parent Email</label>
+              <input type="email" [(ngModel)]="parentForm.email" name="pemail"
+                     class="w-full px-3 py-2 border border-input rounded-md">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Parent Phone</label>
+              <input type="tel" [(ngModel)]="parentForm.phone" name="pphone"
+                     class="w-full px-3 py-2 border border-input rounded-md">
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+          Create Student Account
+        </button>
+      </form>
+    }
+  </div>
+
+  @if (message()) {
+    <div class="fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg bg-green-500 text-white">
+      {{message()}}
+    </div>
+  }
+</div>
