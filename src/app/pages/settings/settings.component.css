@@ -1,1 +1,88 @@
-﻿/* settings specific styles */
+﻿/* Settings container */
+.settings-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+/* Card styles */
+.settings-card {
+  background-color: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+}
+
+.card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #1e293b;
+}
+
+/* Form styles */
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: #374151;
+}
+
+.form-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* Button styles */
+.btn-primary {
+  padding: 8px 24px;
+  background-color: #4f46e5;
+  color: white;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: background-color 150ms;
+}
+
+.btn-primary:hover {
+  background-color: #4338ca;
+}
+
+/* Toast message */
+.toast-message {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  background-color: #22c55e;
+  color: white;
+  z-index: 50;
+}

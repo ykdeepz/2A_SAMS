@@ -1,24 +1,26 @@
-<div class="space-y-6">
-  <div class="flex justify-between items-center">
-    <h2 class="text-2xl font-bold text-slate-800">Attendance Calendar</h2>
-    <div class="flex gap-2">
-      <button (click)="previousMonth()" class="px-3 py-2 bg-slate-200 rounded-md hover:bg-slate-300">←</button>
-      <span class="px-4 py-2 font-semibold">{{currentMonthYear()}}</span>
-      <button (click)="nextMonth()" class="px-3 py-2 bg-slate-200 rounded-md hover:bg-slate-300">→</button>
+<div class="calendar-container">
+  <div class="calendar-header">
+    <h2 class="calendar-title">Attendance Calendar</h2>
+    <div class="month-navigation">
+      <button (click)="previousMonth()" class="nav-btn">←</button>
+      <span class="font-semibold px-4 py-2">{{currentMonthYear()}}</span>
+      <button (click)="nextMonth()" class="nav-btn">→</button>
     </div>
   </div>
 
-  <div class="bg-white rounded-xl border shadow p-6">
-    <div class="grid grid-cols-7 gap-2">
+  <div class="calendar-grid">
+    <div class="weekday-header">
       @for (day of ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']; track day) {
-        <div class="text-center font-semibold text-slate-700 py-2">{{day}}</div>
+        <div class="weekday-label">{{day}}</div>
       }
+    </div>
+    <div class="calendar-days">
       @for (day of calendarDays(); track day.date) {
-        <div [class]="'p-4 border rounded-lg hover:bg-indigo-50 transition-colors cursor-pointer ' + (day.isCurrentMonth ? 'bg-white' : 'bg-slate-50 text-slate-400')"
+        <div [class]="'calendar-day ' + (day.isCurrentMonth ? 'current-month' : 'other-month')"
              (click)="selectDay(day)">
-          <div class="text-sm font-semibold mb-1">{{day.day}}</div>
+          <div class="day-number">{{day.day}}</div>
           @if (day.attendanceCount > 0) {
-            <div class="text-xs bg-indigo-100 text-indigo-800 rounded px-1">
+            <div class="attendance-badge">
               {{day.attendanceCount}} records
             </div>
           }
@@ -28,22 +30,22 @@
   </div>
 
   @if (selectedDay()) {
-    <div class="bg-white rounded-xl border shadow p-6">
-      <h3 class="text-lg font-semibold mb-4">{{formatDate(selectedDay()!.date)}}</h3>
+    <div class="selected-day-panel">
+      <h3 class="selected-day-title">{{formatDate(selectedDay()!.date)}}</h3>
       @if (selectedDayRecords().length > 0) {
-        <div class="space-y-2">
+        <div class="attendance-list">
           @for (record of selectedDayRecords(); track record.attendance_id) {
-            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+            <div class="attendance-record">
               <div>
-                <p class="font-medium">{{record.student_name}}</p>
-                <p class="text-sm text-slate-600">{{record.subject_name}}</p>
+                <p class="student-name">{{record.student_name}}</p>
+                <p class="subject-name">{{record.subject_name}}</p>
               </div>
               <span [class]="getStatusClass(record.status)">{{record.status}}</span>
             </div>
           }
         </div>
       } @else {
-        <p class="text-center text-slate-500 py-4">No records for this day</p>
+        <p class="no-records">No records for this day</p>
       }
     </div>
   }

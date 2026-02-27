@@ -1,1 +1,173 @@
-﻿/* calendar specific styles */
+﻿/* Calendar container */
+.calendar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Calendar header */
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.calendar-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.month-navigation {
+  display: flex;
+  gap: 8px;
+}
+
+.nav-btn {
+  padding: 8px 12px;
+  background-color: #e2e8f0;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.nav-btn:hover {
+  background-color: #cbd5e1;
+}
+
+/* Calendar grid container */
+.calendar-grid {
+  background-color: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+}
+
+/* Week day headers */
+.weekday-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.weekday-label {
+  text-align: center;
+  font-weight: 600;
+  color: #334155;
+  padding: 8px 0;
+}
+
+/* Calendar days */
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.calendar-day {
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  transition: background-color 150ms;
+  cursor: pointer;
+}
+
+.calendar-day:hover {
+  background-color: #eef2ff;
+}
+
+.calendar-day.other-month {
+  background-color: #f8fafc;
+  color: #94a3b8;
+}
+
+.calendar-day.current-month {
+  background-color: white;
+}
+
+.day-number {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.attendance-badge {
+  font-size: 0.75rem;
+  background-color: #e0e7ff;
+  color: #4338ca;
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+
+/* Selected day panel */
+.selected-day-panel {
+  background-color: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+}
+
+.selected-day-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.attendance-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attendance-record {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background-color: #f8fafc;
+  border-radius: 8px;
+}
+
+.student-name {
+  font-weight: 500;
+}
+
+.subject-name {
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+.no-records {
+  text-align: center;
+  color: #64748b;
+  padding: 16px 0;
+}
+
+/* Status badges */
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+}
+
+.status-present {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.status-absent {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.status-late {
+  background-color: #fef9c3;
+  color: #ca8a04;
+}
+
+.status-excused {
+  background-color: #dbeafe;
+  color: #2563eb;
+}

@@ -1,1 +1,215 @@
-﻿/* take-attendance specific styles */
+﻿/* Take attendance container */
+.take-attendance-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+/* Card styles */
+.card {
+  background-color: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+}
+
+.card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #1e293b;
+}
+
+/* Form elements */
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #374151;
+}
+
+.form-select {
+  width: 100%;
+  padding: 8px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: white;
+}
+
+/* Buttons */
+.btn-primary {
+  padding: 8px 16px;
+  background-color: #4f46e5;
+  color: white;
+  border-radius: 6px;
+  transition: background-color 150ms;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background-color: #4338ca;
+}
+
+.btn-success {
+  padding: 8px 16px;
+  background-color: #16a34a;
+  color: white;
+  border-radius: 6px;
+  transition: background-color 150ms;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-success:hover {
+  background-color: #15803d;
+}
+
+.btn-secondary {
+  padding: 8px 16px;
+  background-color: #e2e8f0;
+  border-radius: 6px;
+  transition: background-color 150ms;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background-color: #cbd5e1;
+}
+
+/* Scanner */
+.scanner-container {
+  position: relative;
+  background-color: #0f172a;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 300px;
+}
+
+.scanner-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.scanner-border {
+  position: absolute;
+  inset: 16px;
+  border: 4px solid #6366f1;
+  border-radius: 8px;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Input and buttons row */
+.input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.input-field {
+  flex: 1;
+  padding: 8px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+}
+
+/* Student list */
+.student-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.student-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background-color: #f8fafc;
+  border-radius: 8px;
+}
+
+.student-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.student-name {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.student-id {
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+.student-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Status badges */
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+}
+
+.status-marked {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.status-select {
+  padding: 4px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background-color: white;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  color: #64748b;
+  padding: 32px 0;
+}
+
+/* Toast notification */
+.toast {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  color: white;
+  z-index: 50;
+}
+
+.toast-success {
+  background-color: #22c55e;
+}
+
+.toast-error {
+  background-color: #ef4444;
+}

@@ -27,10 +27,10 @@ export class DashboardComponent {
     const attendanceRate = totalAttendance > 0 ? Math.round((presentCount / totalAttendance) * 100) : 0;
 
     return [
-      { label: 'Total Students', value: students.length, icon: '👥', bgColor: 'bg-indigo-100' },
-      { label: 'Total Subjects', value: subjects.length, icon: '📚', bgColor: 'bg-green-100' },
-      { label: 'Attendance Rate', value: attendanceRate + '%', icon: '📊', bgColor: 'bg-amber-100' },
-      { label: 'Today\'s Records', value: this.getTodayCount(), icon: '✓', bgColor: 'bg-red-100' }
+      { label: 'Total Students', value: students.length, icon: '👥', bgColorClass: 'bg-indigo' },
+      { label: 'Total Subjects', value: subjects.length, icon: '📚', bgColorClass: 'bg-green' },
+      { label: 'Attendance Rate', value: attendanceRate + '%', icon: '📊', bgColorClass: 'bg-amber' },
+      { label: 'Today\'s Records', value: this.getTodayCount(), icon: '✓', bgColorClass: 'bg-red' }
     ];
   });
 
@@ -47,10 +47,10 @@ export class DashboardComponent {
 
   getStatusClass(status: string): string {
     const classes: Record<string, string> = {
-      'Present': 'px-3 py-1 rounded-full text-sm bg-green-100 text-green-800',
-      'Late': 'px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-800',
-      'Absent': 'px-3 py-1 rounded-full text-sm bg-red-100 text-red-800',
-      'Excused': 'px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800'
+      'Present': 'status-present',
+      'Late': 'status-late',
+      'Absent': 'status-absent',
+      'Excused': 'status-excused'
     };
     return classes[status] || '';
   }
