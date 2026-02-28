@@ -77,10 +77,10 @@ export class SubjectDetailComponent {
 
   getStatusClass(status: string): string {
     const classes: Record<string, string> = {
-      'Present': 'px-3 py-1 rounded-full text-sm bg-green-100 text-green-800',
-      'Late': 'px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-800',
-      'Absent': 'px-3 py-1 rounded-full text-sm bg-red-100 text-red-800',
-      'Excused': 'px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800'
+      'Present': 'status-present',
+      'Late': 'status-late',
+      'Absent': 'status-absent',
+      'Excused': 'status-excused'
     };
     return classes[status] || '';
   }

@@ -1,1 +1,168 @@
-/* Dashboard specific styles */
+/* Dashboard container */
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Stat Card */
+.stat-card {
+  background-color: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  transition: box-shadow 150ms;
+}
+
+.stat-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+.stat-value {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-top: 8px;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.stat-icon.bg-indigo {
+  background-color: #e0e7ff;
+}
+
+.stat-icon.bg-green {
+  background-color: #dcfce7;
+}
+
+.stat-icon.bg-amber {
+  background-color: #fef3c7;
+}
+
+.stat-icon.bg-red {
+  background-color: #fee2e2;
+}
+
+/* Recent Activity */
+.recent-activity {
+  background-color: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+}
+
+.section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 16px;
+}
+
+.attendance-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.attendance-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background-color: #f8fafc;
+  border-radius: 8px;
+}
+
+.student-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.student-name {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.subject-name {
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 32px 0;
+  color: #64748b;
+}
+
+.empty-icon {
+  font-size: 2.25rem;
+  margin-bottom: 8px;
+}
+
+/* Status badges */
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+}
+
+.status-present {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.status-absent {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.status-late {
+  background-color: #fef9c3;
+  color: #ca8a04;
+}
+
+.status-excused {
+  background-color: #dbeafe;
+  color: #2563eb;
+}

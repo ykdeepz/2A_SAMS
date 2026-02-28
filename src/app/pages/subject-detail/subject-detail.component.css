@@ -1,1 +1,244 @@
-﻿/* Subject detail specific styles */
+﻿/* Subject detail container */
+.subject-detail-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Header */
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.subject-code {
+  color: #475569;
+}
+
+.btn-take-attendance {
+  padding: 8px 16px;
+  background-color: #4f46e5;
+  color: white;
+  border-radius: 6px;
+  transition: background-color 150ms;
+}
+
+.btn-take-attendance:hover {
+  background-color: #4338ca;
+}
+
+/* Tabs container */
+.tabs-container {
+  background-color: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tabs-header {
+  display: flex;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tab-button {
+  padding: 12px 24px;
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #475569;
+  border-bottom: 2px solid transparent;
+}
+
+.tab-button.active {
+  color: #4f46e5;
+  border-bottom-color: #4f46e5;
+}
+
+.tab-button:hover:not(.active) {
+  color: #1e293b;
+}
+
+.tab-content {
+  padding: 24px;
+}
+
+/* Enroll button */
+.btn-enroll {
+  padding: 8px 16px;
+  background-color: #16a34a;
+  color: white;
+  border-radius: 6px;
+  transition: background-color 150ms;
+}
+
+.btn-enroll:hover {
+  background-color: #15803d;
+}
+
+/* Student/Attendance list */
+.list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background-color: #f8fafc;
+  border-radius: 8px;
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.item-name {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.item-meta {
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+.btn-unenroll {
+  padding: 4px 12px;
+  font-size: 0.875rem;
+  background-color: #fee2e2;
+  color: #dc2626;
+  border-radius: 4px;
+  transition: background-color 150ms;
+}
+
+.btn-unenroll:hover {
+  background-color: #fecaca;
+}
+
+/* Status badges */
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+}
+
+.status-present {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.status-absent {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.status-late {
+  background-color: #fef9c3;
+  color: #ca8a04;
+}
+
+.status-excused {
+  background-color: #dbeafe;
+  color: #2563eb;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  color: #64748b;
+  padding: 32px 0;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 12px;
+  padding: 24px;
+  width: 100%;
+  max-width: 28rem;
+  max-height: 24rem;
+  overflow-y: auto;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #1e293b;
+}
+
+.student-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.student-option {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  width: 100%;
+  text-align: left;
+  transition: background-color 150ms;
+}
+
+.student-option:hover {
+  background-color: #f1f5f9;
+}
+
+.student-option-name {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.student-option-meta {
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+.btn-close {
+  margin-top: 16px;
+  width: 100%;
+  padding: 8px 16px;
+  background-color: #e2e8f0;
+  border-radius: 6px;
+  transition: background-color 150ms;
+}
+
+.btn-close:hover {
+  background-color: #cbd5e1;
+}
