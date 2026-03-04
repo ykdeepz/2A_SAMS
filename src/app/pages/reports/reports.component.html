@@ -1,12 +1,26 @@
-<div class="space-y-6">
-  <h2 class="text-2xl font-bold text-slate-800">Reports</h2>
+<div class="space-y-6 animate-fade-in">
+  <!-- Header -->
+  <div class="header-with-button">
+    <div>
+      <h2>Reports & Analytics</h2>
+      <p style="color: #64748b; margin-top: 0.5rem; font-size: 0.9375rem;">View attendance statistics and trends</p>
+    </div>
+    <button class="export-button" (click)="exportToExcel()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+      Export to Excel
+    </button>
+  </div>
 
   <!-- Filters -->
-  <div class="bg-white rounded-xl border shadow p-6">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div class="filter-card">
+    <div class="filter-grid">
       <div>
-        <label class="block text-sm font-medium mb-2">Subject</label>
-        <select [(ngModel)]="filterSubject" class="w-full px-3 py-2 border border-input rounded-md">
+        <label>Subject</label>
+        <select [(ngModel)]="filterSubject">
           <option value="">All Subjects</option>
           @for (subject of subjects(); track subject.subject_id) {
             <option [value]="subject.subject_id">{{subject.subject_name}}</option>
@@ -14,70 +28,76 @@
         </select>
       </div>
       <div>
-        <label class="block text-sm font-medium mb-2">Date Range</label>
-        <select [(ngModel)]="dateRange" class="w-full px-3 py-2 border border-input rounded-md">
+        <label>Date Range</label>
+        <select [(ngModel)]="dateRange">
           <option value="7">Last 7 days</option>
           <option value="30">Last 30 days</option>
           <option value="90">Last 90 days</option>
         </select>
       </div>
+      <div>
+        <label>Export Month</label>
+        <input type="month" [(ngModel)]="selectedMonth" class="month-input">
+      </div>
     </div>
   </div>
 
   <!-- Stats Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+  <div class="stats-grid">
     @for (stat of statusStats(); track stat.label) {
-      <div class="bg-white rounded-xl border shadow p-6">
-        <p class="text-sm text-slate-600">{{stat.label}}</p>
-        <p class="text-3xl font-bold mt-2" [style.color]="stat.color">{{stat.value}}</p>
-        <p class="text-sm text-slate-500 mt-1">{{stat.percentage}}%</p>
+      <div class="stat-card">
+        <p class="stat-label">{{stat.label}}</p>
+        <p class="stat-value" [style.color]="stat.color">{{stat.value}}</p>
+        <p class="stat-percentage">{{stat.percentage}}% of total</p>
       </div>
     }
   </div>
 
   <!-- Charts -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="charts-grid">
     <!-- Bar Chart -->
-    <div class="bg-white rounded-xl border shadow p-6">
-      <h3 class="text-lg font-semibold mb-4">Attendance by Status</h3>
-      <div class="space-y-3">
+    <div class="chart-card">
+      <h3>Attendance by Status</h3>
+      <div class="bar-chart">
         @for (item of statusStats(); track item.label) {
           <div>
-            <div class="flex justify-between text-sm mb-1">
+            <div class="bar-item-header">
               <span>{{item.label}}</span>
-              <span class="font-semibold">{{item.value}}</span>
+              <span class="bar-item-value">{{item.value}}</span>
             </div>
-            <div class="w-full bg-slate-200 rounded-full h-3">
-              <div [style.width.%]="item.percentage" [style.background-color]="item.color"
-                   class="h-3 rounded-full transition-all duration-300"></div>
+            <div class="bar-track">
+              <div [style.width.%]="item.percentage" 
+                   [style.background-color]="item.color"
+                   class="bar-fill"></div>
             </div>
           </div>
         }
       </div>
     </div>
 
-    <!-- Pie Chart (Visual) -->
-    <div class="bg-white rounded-xl border shadow p-6">
-      <h3 class="text-lg font-semibold mb-4">Status Distribution</h3>
-      <div class="flex items-center justify-center h-64">
-        <div class="relative w-48 h-48">
+    <!-- Distribution Chart -->
+    <div class="chart-card">
+      <h3>Status Distribution</h3>
+      <div class="pie-container">
+        <div class="pie-visual">
           @for (item of statusStats(); track item.label; let i = $index) {
-            <div class="absolute inset-0 flex items-center justify-center">
-              <div [style.width.px]="180 - (i * 30)" [style.height.px]="180 - (i * 30)"
+            <div class="pie-ring">
+              <div [style.width.px]="180 - (i * 30)" 
+                   [style.height.px]="180 - (i * 30)"
                    [style.background-color]="item.color"
-                   class="rounded-full opacity-80"></div>
+                   class="pie-circle"></div>
             </div>
           }
         </div>
       </div>
-      <div class="mt-4 space-y-2">
+      <div class="legend">
         @for (item of statusStats(); track item.label) {
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <div [style.background-color]="item.color" class="w-4 h-4 rounded"></div>
-              <span class="text-sm">{{item.label}}</span>
+          <div class="legend-item">
+            <div class="legend-label">
+              <div [style.background-color]="item.color" class="legend-color"></div>
+              <span class="legend-text">{{item.label}}</span>
             </div>
-            <span class="text-sm font-semibold">{{item.percentage}}%</span>
+            <span class="legend-value">{{item.percentage}}%</span>
           </div>
         }
       </div>

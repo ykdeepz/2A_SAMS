@@ -10,6 +10,8 @@ import { CalendarComponent } from './pages/calendar/calendar.component';
 import { CreateAccountComponent } from './pages/create-account/create-account.component';
 import { ReportsComponent } from './pages/reports/reports.component';
 import { SettingsComponent } from './pages/settings/settings.component';
+import { AccountsComponent } from './pages/accounts/accounts.component';
+import { DepartmentsComponent } from './pages/departments/departments.component';
 import { authGuard, roleGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -21,12 +23,14 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardComponent, canActivate: [roleGuard(['admin', 'instructor'])] },
-      { path: 'subjects', component: SubjectsComponent },
+      { path: 'accounts', component: AccountsComponent, canActivate: [roleGuard(['admin'])] },
+      { path: 'departments', component: DepartmentsComponent, canActivate: [roleGuard(['admin'])] },
+      { path: 'subjects', component: SubjectsComponent, canActivate: [roleGuard(['admin', 'instructor', 'student'])] },
       { path: 'subject/:id', component: SubjectDetailComponent, data: { renderMode: 'client' } },
       { path: 'take-attendance', component: TakeAttendanceComponent, canActivate: [roleGuard(['instructor'])] },
       { path: 'attendance-records', component: AttendanceRecordsComponent },
       { path: 'calendar', component: CalendarComponent },
-      { path: 'create-account', component: CreateAccountComponent, canActivate: [roleGuard(['admin'])] },
+      { path: 'create-account', component: CreateAccountComponent, canActivate: [roleGuard(['admin', 'instructor'])] },
       { path: 'reports', component: ReportsComponent, canActivate: [roleGuard(['admin', 'instructor'])] },
       { path: 'settings', component: SettingsComponent }
     ]

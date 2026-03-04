@@ -1,21 +1,36 @@
 export interface User {
+  id?: number;
   user_id: string;
   email: string;
   password?: string;
   role: 'admin' | 'instructor' | 'student' | 'parent';
+  first_name: string;
+  middle_name?: string;
+  last_name: string;
+  full_name: string;
+  created_at: string;
 }
 
 export interface Instructor {
+  id?: number;
   instructor_id: string;
+  first_name: string;
+  middle_name?: string;
+  last_name: string;
   full_name: string;
   email: string;
   phone: string;
   department: string;
   user_id: string;
+  created_at: string;
 }
 
 export interface Student {
+  id?: number;
   student_id: string;
+  first_name: string;
+  middle_name?: string;
+  last_name: string;
   full_name: string;
   email: string;
   grade_level: string;
@@ -23,18 +38,25 @@ export interface Student {
   qr_code_data: string;
   instructor_id: string;
   user_id: string;
+  created_at: string;
 }
 
 export interface Parent {
+  id?: number;
   parent_id: string;
+  first_name: string;
+  middle_name?: string;
+  last_name: string;
   full_name: string;
   email: string;
   phone: string;
   student_id: string;
   user_id: string;
+  created_at: string;
 }
 
 export interface Subject {
+  id?: number;
   subject_id: string;
   subject_name: string;
   subject_code: string;
@@ -46,6 +68,7 @@ export interface Subject {
 }
 
 export interface SubjectEnrollment {
+  id?: number;
   enrollment_id: string;
   subject_id: string;
   student_id: string;
@@ -55,6 +78,7 @@ export interface SubjectEnrollment {
 }
 
 export interface Attendance {
+  id?: number;
   attendance_id: string;
   student_id: string;
   student_name: string;
@@ -65,4 +89,10 @@ export interface Attendance {
   time: string;
   status: 'Present' | 'Late' | 'Absent' | 'Excused';
   method: 'QR' | 'Manual';
+}
+
+export interface Department {
+  id?: number;
+  name: string;
+  created_at: string;
 }

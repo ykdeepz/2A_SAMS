@@ -1,1 +1,166 @@
-/* Subjects specific styles */
+/* Revolutionary Subjects Component Styles */
+
+/* Animations */
+.animate-fade-in {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Enhanced Subject Cards */
+.grid > div {
+  position: relative;
+  overflow: hidden;
+}
+
+.grid > div::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.grid > div:hover::before {
+  transform: scaleX(1);
+}
+
+.grid > div:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(102, 126, 234, 0.2) !important;
+}
+
+/* Enhanced Buttons */
+button[class*="gradient"] {
+  position: relative;
+  overflow: hidden;
+}
+
+button[class*="gradient"]::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+button[class*="gradient"]:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Enhanced Search Input */
+input[type="text"] {
+  transition: all 0.3s ease;
+}
+
+input[type="text"]:focus {
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+/* Modal Backdrop */
+.fixed.inset-0 {
+  backdrop-filter: blur(4px);
+}
+
+/* Empty State Animation */
+.col-span-full lucide-icon {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+/* Subject Card Details */
+.space-y-2 > div {
+  transition: all 0.2s ease;
+}
+
+.space-y-2 > div:hover {
+  transform: translateX(4px);
+  color: #667eea;
+}
+
+/* View Details Button Enhancement */
+a[class*="block w-full"] {
+  position: relative;
+  overflow: hidden;
+}
+
+a[class*="block w-full"]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+a[class*="block w-full"]:hover::before {
+  left: 100%;
+}
+
+/* Delete Button Enhancement */
+button[class*="text-red-600"] {
+  transition: all 0.3s ease;
+}
+
+button[class*="text-red-600"]:hover {
+  transform: rotate(10deg) scale(1.1);
+}
+
+/* Form Inputs Enhancement */
+form input, form select {
+  transition: all 0.3s ease;
+}
+
+form input:focus, form select:focus {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+/* Modal Close Button */
+.sticky button {
+  transition: all 0.3s ease;
+}
+
+.sticky button:hover {
+  transform: rotate(90deg);
+}

@@ -1,78 +1,156 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { DataService } from '../../services/data.service';
-import { Student, Instructor, Parent, User } from '../../models/user.model';
+import { RoleService } from '../../services/role.service';
+import { InstructorFormComponent } from './instructor-form/instructor-form.component';
+import { StudentFormComponent, StudentFormData } from './student-form/student-form.component';
+import { Instructor } from '../../models/user.model';
+import { LucideAngularModule, CheckCircle2, AlertCircle, X, UserCircle, GraduationCap } from 'lucide-angular';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-create-account',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, InstructorFormComponent, StudentFormComponent, LucideAngularModule],
   templateUrl: './create-account.component.html',
   styleUrls: ['./create-account.component.css']
 })
 export class CreateAccountComponent {
-  accountType = 'instructor';
-  instructorForm: any = {};
-  studentForm: any = {};
-  parentForm: any = {};
-  message = signal('');
+  private dataService = inject(DataService);
+  private roleService = inject(RoleService);
+  
+  // Lucide icons
+  readonly CheckCircle2 = CheckCircle2;
+  readonly AlertCircle = AlertCircle;
+  readonly X = X;
+  readonly UserCircle = UserCircle;
+  readonly GraduationCap = GraduationCap;
+  
+  activeTab = signal<'instructor' | 'student'>('instructor');
+  
+  // Role permissions
+  canCreateInstructor = this.roleService.isAdmin;
+  canCreateStudent = this.roleService.canCreateAccounts;
 
-  constructor(private dataService: DataService) {}
-
-  createInstructor() {
-    const userId = 'U' + Date.now();
-    const instructor: Instructor = {
-      instructor_id: 'I' + Date.now(),
-      full_name: this.instructorForm.full_name,
-      email: this.instructorForm.email,
-      phone: this.instructorForm.phone,
-      department: this.instructorForm.department,
-      user_id: userId
-    };
-
-    this.dataService.addInstructor(instructor);
-    this.showMessage('Instructor account created successfully');
-    this.instructorForm = {};
-  }
-
-  createStudent() {
-    const userId = 'U' + Date.now();
-    const studentId = 'S' + Date.now();
-    
-    const student: Student = {
-      student_id: studentId,
-      full_name: this.studentForm.full_name,
-      email: this.studentForm.email,
-      grade_level: this.studentForm.grade_level,
-      section: this.studentForm.section,
-      qr_code_data: `STUDENT-${studentId}`,
-      instructor_id: this.dataService.instructors()[0]?.instructor_id || 'I001',
-      user_id: userId
-    };
-
-    this.dataService.addStudent(student);
-
-    // Create parent if info provided
-    if (this.parentForm.full_name) {
-      const parent: Parent = {
-        parent_id: 'P' + Date.now(),
-        full_name: this.parentForm.full_name,
-        email: this.parentForm.email,
-        phone: this.parentForm.phone,
-        student_id: studentId,
-        user_id: 'U' + (Date.now() + 1)
-      };
-      this.dataService.addParent(parent);
+  constructor() {
+    // Set default tab based on role
+    if (!this.canCreateInstructor() && this.canCreateStudent()) {
+      this.activeTab.set('student');
     }
-
-    this.showMessage('Student account created successfully');
-    this.studentForm = {};
-    this.parentForm = {};
   }
 
-  showMessage(msg: string) {
-    this.message.set(msg);
-    setTimeout(() => this.message.set(''), 3000);
+  setActiveTab(tab: 'instructor' | 'student') {
+    this.activeTab.set(tab);
+  }
+
+  async onInstructorSubmit(instructor: Instructor) {
+    try {
+      // Create user account first
+      const userId = 'U' + Date.now();
+      const user = {
+        user_id: userId,
+        email: instructor.email,
+        password: 'instructor123', // Default password
+        role: 'instructor' as const,
+        first_name: instructor.first_name,
+        middle_name: instructor.middle_name,
+        last_name: instructor.last_name,
+        full_name: instructor.full_name,
+        created_at: new Date().toISOString()
+      };
+      
+      await this.dataService.addUser(user);
+      
+      // Then create instructor profile
+      const instructorWithUser = {
+        ...instructor,
+        user_id: userId,
+        created_at: new Date().toISOString()
+      };
+      
+      await this.dataService.addInstructor(instructorWithUser);
+      
+      await Swal.fire({
+        title: 'Success!',
+        html: 'Instructor account created successfully!<br><strong>Default password:</strong> instructor123',
+        icon: 'success',
+        timer: 3000,
+        showConfirmButton: false
+      });
+    } catch (error) {
+      await Swal.fire({
+        title: 'Error!',
+        text: 'Failed to create instructor account. Please try again.',
+        icon: 'error'
+      });
+    }
+  }
+
+  async onStudentSubmit(data: StudentFormData) {
+    try {
+      // Create student user account
+      const studentUserId = 'U' + Date.now();
+      const studentUser = {
+        user_id: studentUserId,
+        email: data.student.email,
+        password: 'student123', // Default password
+        role: 'student' as const,
+        first_name: data.student.first_name,
+        middle_name: data.student.middle_name,
+        last_name: data.student.last_name,
+        full_name: data.student.full_name,
+        created_at: new Date().toISOString()
+      };
+      
+      await this.dataService.addUser(studentUser);
+      
+      // Create student profile
+      const studentWithUser = {
+        ...data.student,
+        user_id: studentUserId,
+        created_at: new Date().toISOString()
+      };
+      
+      await this.dataService.addStudent(studentWithUser);
+      
+      // Create parent user account
+      const parentUserId = 'U' + (Date.now() + 1);
+      const parentUser = {
+        user_id: parentUserId,
+        email: data.parent.email,
+        password: 'parent123', // Default password
+        role: 'parent' as const,
+        first_name: data.parent.first_name,
+        middle_name: data.parent.middle_name,
+        last_name: data.parent.last_name,
+        full_name: data.parent.full_name,
+        created_at: new Date().toISOString()
+      };
+      
+      await this.dataService.addUser(parentUser);
+      
+      // Create parent profile
+      const parentWithUser = {
+        ...data.parent,
+        user_id: parentUserId,
+        created_at: new Date().toISOString()
+      };
+      
+      await this.dataService.addParent(parentWithUser);
+      
+      await Swal.fire({
+        title: 'Success!',
+        html: 'Student and parent accounts created!<br><strong>Default passwords:</strong> student123 / parent123',
+        icon: 'success',
+        timer: 3000,
+        showConfirmButton: false
+      });
+    } catch (error) {
+      await Swal.fire({
+        title: 'Error!',
+        text: 'Failed to create student account. Please try again.',
+        icon: 'error'
+      });
+    }
   }
 }

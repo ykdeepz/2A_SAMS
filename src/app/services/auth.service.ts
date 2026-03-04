@@ -1,39 +1,49 @@
 import { Injectable, signal, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { User } from '../models/user.model';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private platformId = inject(PLATFORM_ID);
+  private http = inject(HttpClient);
   private isBrowser = isPlatformBrowser(this.platformId);
+  private apiUrl = 'http://localhost:3000';
   currentUser = signal<User | null>(null);
   
   constructor(private router: Router) {
     this.loadUser();
   }
 
-  login(email: string, password: string): boolean {
-    // Mock authentication
-    const mockUsers: User[] = [
-      { user_id: '1', email: 'admin@school.com', role: 'admin' },
-      { user_id: '2', email: 'instructor@school.com', role: 'instructor' },
-      { user_id: '3', email: 'student@school.com', role: 'student' },
-      { user_id: '4', email: 'parent@school.com', role: 'parent' }
-    ];
-
-    const user = mockUsers.find(u => u.email === email);
-    if (user) {
-      this.currentUser.set(user);
-      if (this.isBrowser) {
-        localStorage.setItem('currentUser', JSON.stringify(user));
+  async login(email: string, password: string): Promise<boolean> {
+    try {
+      // Fetch all users from JSON server
+      const users = await firstValueFrom(this.http.get<User[]>(`${this.apiUrl}/users`));
+      
+      // Find user with matching email and password
+      const user = users.find(u => u.email === email && u.password === password);
+      
+      if (user) {
+        // Remove password before storing
+        const { password: _, ...userWithoutPassword } = user;
+        this.currentUser.set(userWithoutPassword as User);
+        
+        if (this.isBrowser) {
+          localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
+        }
+        
+        this.redirectByRole(user.role);
+        return true;
       }
-      this.redirectByRole(user.role);
-      return true;
+      return false;
+    } catch (error) {
+      console.error('Login error:', error);
+      return false;
     }
-    return false;
   }
 
   logout() {

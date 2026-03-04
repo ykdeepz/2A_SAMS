@@ -1,58 +1,100 @@
-<div class="space-y-6">
-  <h2 class="text-2xl font-bold text-slate-800">Settings</h2>
-
-  <!-- Profile Settings -->
-  <div class="bg-white rounded-xl border shadow p-6">
-    <h3 class="text-lg font-semibold mb-4">Profile Information</h3>
-    <form (ngSubmit)="updateProfile()" class="space-y-4">
-      <div>
-        <label class="block text-sm font-medium mb-1">Email</label>
-        <input type="email" [(ngModel)]="profileForm.email" name="email" required
-               class="w-full px-3 py-2 border border-input rounded-md">
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Full Name</label>
-        <input type="text" [(ngModel)]="profileForm.name" name="name"
-               class="w-full px-3 py-2 border border-input rounded-md">
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Phone</label>
-        <input type="tel" [(ngModel)]="profileForm.phone" name="phone"
-               class="w-full px-3 py-2 border border-input rounded-md">
-      </div>
-      <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-        Update Profile
-      </button>
-    </form>
+<div class="space-y-6 animate-fade-in">
+  <!-- Header -->
+  <div>
+    <h2>Settings</h2>
+    <p style="color: #64748b; margin-top: 0.5rem; font-size: 0.9375rem;">Manage your account preferences</p>
   </div>
 
-  <!-- Password Change -->
-  <div class="bg-white rounded-xl border shadow p-6">
-    <h3 class="text-lg font-semibold mb-4">Change Password</h3>
-    <form (ngSubmit)="changePassword()" class="space-y-4">
-      <div>
-        <label class="block text-sm font-medium mb-1">Current Password</label>
-        <input type="password" [(ngModel)]="passwordForm.current" name="current" required
-               class="w-full px-3 py-2 border border-input rounded-md">
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">New Password</label>
-        <input type="password" [(ngModel)]="passwordForm.new" name="new" required
-               class="w-full px-3 py-2 border border-input rounded-md">
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Confirm New Password</label>
-        <input type="password" [(ngModel)]="passwordForm.confirm" name="confirm" required
-               class="w-full px-3 py-2 border border-input rounded-md">
-      </div>
-      <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-        Change Password
-      </button>
-    </form>
+  <!-- Settings Grid -->
+  <div class="settings-grid">
+    <!-- Profile Settings -->
+    <div class="settings-card">
+      <h3>Profile Information</h3>
+      <form (ngSubmit)="updateProfile()">
+        <div>
+          <label for="email">Email Address</label>
+          <input 
+            type="email" 
+            id="email"
+            [(ngModel)]="profileForm.email" 
+            name="email" 
+            placeholder="your.email@school.com"
+            required
+          />
+        </div>
+        <div>
+          <label for="name">Full Name</label>
+          <input 
+            type="text" 
+            id="name"
+            [(ngModel)]="profileForm.name" 
+            name="name"
+            placeholder="Enter your full name"
+          />
+        </div>
+        <div>
+          <label for="phone">Phone Number</label>
+          <input 
+            type="tel" 
+            id="phone"
+            [(ngModel)]="profileForm.phone" 
+            name="phone"
+            placeholder="(555) 123-4567"
+          />
+        </div>
+        <button type="submit" class="submit-button">
+          Update Profile
+        </button>
+      </form>
+    </div>
+
+    <!-- Password Change -->
+    <div class="settings-card">
+      <h3>Change Password</h3>
+      <form (ngSubmit)="changePassword()">
+        <div>
+          <label for="current-password">Current Password</label>
+          <input 
+            type="password" 
+            id="current-password"
+            [(ngModel)]="passwordForm.current" 
+            name="current" 
+            placeholder="Enter current password"
+            required
+          />
+        </div>
+        <div>
+          <label for="new-password">New Password</label>
+          <input 
+            type="password" 
+            id="new-password"
+            [(ngModel)]="passwordForm.new" 
+            name="new" 
+            placeholder="Enter new password"
+            required
+          />
+        </div>
+        <div>
+          <label for="confirm-password">Confirm New Password</label>
+          <input 
+            type="password" 
+            id="confirm-password"
+            [(ngModel)]="passwordForm.confirm" 
+            name="confirm" 
+            placeholder="Confirm new password"
+            required
+          />
+        </div>
+        <button type="submit" class="submit-button">
+          Change Password
+        </button>
+      </form>
+    </div>
   </div>
 
+  <!-- Success Toast -->
   @if (message()) {
-    <div class="fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg bg-green-500 text-white">
+    <div class="success-toast">
       {{message()}}
     </div>
   }

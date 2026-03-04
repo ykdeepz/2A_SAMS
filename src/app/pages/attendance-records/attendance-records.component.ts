@@ -3,17 +3,23 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DataService } from '../../services/data.service';
 import { AuthService } from '../../services/auth.service';
+import { LucideAngularModule, ClipboardList, QrCode, Pencil } from 'lucide-angular';
 
 @Component({
   selector: 'app-attendance-records',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule],
   templateUrl: './attendance-records.component.html',
   styleUrls: ['./attendance-records.component.css']
 })
 export class AttendanceRecordsComponent {
   dataService = inject(DataService);
   authService = inject(AuthService);
+  
+  // Lucide icons
+  readonly ClipboardList = ClipboardList;
+  readonly QrCode = QrCode;
+  readonly Pencil = Pencil;
   
   filterSubject = '';
   filterStatus = '';
@@ -65,10 +71,10 @@ export class AttendanceRecordsComponent {
 
   getStatusClass(status: string): string {
     const classes: Record<string, string> = {
-      'Present': 'px-3 py-1 rounded-full text-sm bg-green-100 text-green-800',
-      'Late': 'px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-800',
-      'Absent': 'px-3 py-1 rounded-full text-sm bg-red-100 text-red-800',
-      'Excused': 'px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800'
+      'Present': 'bg-emerald-100 text-emerald-700 rounded-full px-3 py-1 text-sm font-medium',
+      'Late': 'bg-amber-100 text-amber-700 rounded-full px-3 py-1 text-sm font-medium',
+      'Absent': 'bg-red-100 text-red-700 rounded-full px-3 py-1 text-sm font-medium',
+      'Excused': 'bg-blue-100 text-blue-700 rounded-full px-3 py-1 text-sm font-medium'
     };
     return classes[status] || '';
   }

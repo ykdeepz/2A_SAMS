@@ -2,11 +2,12 @@ import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
+import { LucideAngularModule, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-angular';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
@@ -16,18 +17,21 @@ export class LoginComponent {
   loading = signal(false);
   error = signal('');
 
+  // Lucide icons
+  readonly CheckCircle2 = CheckCircle2;
+  readonly AlertCircle = AlertCircle;
+  readonly ArrowRight = ArrowRight;
+
   constructor(private authService: AuthService) {}
 
-  onSubmit() {
+  async onSubmit() {
     this.loading.set(true);
     this.error.set('');
 
-    setTimeout(() => {
-      const success = this.authService.login(this.email, this.password);
-      if (!success) {
-        this.error.set('Invalid credentials');
-      }
-      this.loading.set(false);
-    }, 500);
+    const success = await this.authService.login(this.email, this.password);
+    if (!success) {
+      this.error.set('Invalid email or password');
+    }
+    this.loading.set(false);
   }
 }

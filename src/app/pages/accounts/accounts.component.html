@@ -1,0 +1,223 @@
+<div class="accounts-container">
+  <div class="header">
+    <h1>Account Management</h1>
+    <p>View and manage all registered accounts in the system</p>
+  </div>
+
+  <div class="accounts-grid">
+    <!-- Instructors Column -->
+    <div class="account-column">
+      <div class="column-header">
+        <h2>Instructors</h2>
+        <span class="count">{{ instructorAccounts().length }}</span>
+      </div>
+      <div class="account-list">
+        @for (account of instructorAccounts(); track account.user_id) {
+          <div class="account-card" (click)="viewAccount(account)">
+            <div class="account-icon">
+              <lucide-icon [img]="UserCircle" [size]="32"></lucide-icon>
+            </div>
+            <div class="account-info">
+              <h3>{{ account.full_name }} <span class="department-tag">{{ getInstructorDepartment(account.user_id) }}</span></h3>
+              <p class="email">{{ account.email }}</p>
+              <span class="badge" [ngClass]="getRoleBadgeClass(account.role)">
+                {{ account.role }}
+              </span>
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-state">
+            <p>No instructor accounts yet</p>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Students Column -->
+    <div class="account-column">
+      <div class="column-header">
+        <h2>Students</h2>
+        <span class="count">{{ studentAccounts().length }}</span>
+      </div>
+      <div class="account-list">
+        @for (account of studentAccounts(); track account.user_id) {
+          <div class="account-card" (click)="viewAccount(account)">
+            <div class="account-icon">
+              <lucide-icon [img]="UserCircle" [size]="32"></lucide-icon>
+            </div>
+            <div class="account-info">
+              <h3>{{ account.full_name }}</h3>
+              <p class="email">{{ account.email }}</p>
+              <span class="badge" [ngClass]="getRoleBadgeClass(account.role)">
+                {{ account.role }}
+              </span>
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-state">
+            <p>No student accounts yet</p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Account Details Modal -->
+@if (showModal()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Account Details</h2>
+        <button class="close-btn" (click)="closeModal()">
+          <lucide-icon [img]="X" [size]="24"></lucide-icon>
+        </button>
+      </div>
+
+      @if (selectedAccount(); as account) {
+        <div class="modal-body">
+          @if (!isEditing()) {
+            <!-- View Mode -->
+            <div class="detail-section">
+              <div class="detail-row">
+                <lucide-icon [img]="UserCircle" [size]="20"></lucide-icon>
+                <div class="detail-content">
+                  <label>Full Name</label>
+                  <p>{{ account.full_name }}</p>
+                </div>
+              </div>
+
+              <div class="detail-row">
+                <lucide-icon [img]="Mail" [size]="20"></lucide-icon>
+                <div class="detail-content">
+                  <label>Email</label>
+                  <p>{{ account.email }}</p>
+                </div>
+              </div>
+
+              @if (account.role === 'instructor' && selectedInstructorDetails()) {
+                <div class="detail-row">
+                  <lucide-icon [img]="Shield" [size]="20"></lucide-icon>
+                  <div class="detail-content">
+                    <label>Department</label>
+                    <p>{{ selectedInstructorDetails().department }}</p>
+                  </div>
+                </div>
+
+                <div class="detail-row">
+                  <lucide-icon [img]="Mail" [size]="20"></lucide-icon>
+                  <div class="detail-content">
+                    <label>Phone</label>
+                    <p>{{ selectedInstructorDetails().phone }}</p>
+                  </div>
+                </div>
+              } @else {
+                <div class="detail-row">
+                  <lucide-icon [img]="Shield" [size]="20"></lucide-icon>
+                  <div class="detail-content">
+                    <label>Role</label>
+                    <span class="badge" [ngClass]="getRoleBadgeClass(account.role)">
+                      {{ account.role }}
+                    </span>
+                  </div>
+                </div>
+              }
+
+              <div class="detail-row">
+                <lucide-icon [img]="Calendar" [size]="20"></lucide-icon>
+                <div class="detail-content">
+                  <label>Created</label>
+                  <p>{{ formatDate(account.created_at) }}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-actions">
+              <button class="btn-delete" (click)="deleteAccount()">
+                <lucide-icon [img]="Trash2" [size]="18"></lucide-icon>
+                Delete Account
+              </button>
+              <button class="btn-edit" (click)="startEdit()">
+                <lucide-icon [img]="Edit2" [size]="18"></lucide-icon>
+                Edit Account
+              </button>
+            </div>
+          } @else {
+            <!-- Edit Mode -->
+            <form class="edit-form" (ngSubmit)="saveEdit()">
+              <div class="form-group">
+                <label>First Name</label>
+                <input 
+                  type="text" 
+                  [(ngModel)]="editForm().first_name"
+                  name="first_name"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Middle Name</label>
+                <input 
+                  type="text" 
+                  [(ngModel)]="editForm().middle_name"
+                  name="middle_name"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Last Name</label>
+                <input 
+                  type="text" 
+                  [(ngModel)]="editForm().last_name"
+                  name="last_name"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Email</label>
+                <input 
+                  type="email" 
+                  [(ngModel)]="editForm().email"
+                  name="email"
+                  required
+                />
+              </div>
+
+              @if (account.role === 'instructor') {
+                <div class="form-group">
+                  <label>Phone</label>
+                  <input 
+                    type="tel" 
+                    [(ngModel)]="editForm().phone"
+                    name="phone"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>Department</label>
+                  <select [(ngModel)]="editForm().department" name="department" required>
+                    <option value="">Select Department</option>
+                    @for (dept of dataService.departments(); track dept.id) {
+                      <option [value]="dept.name">{{ dept.name }}</option>
+                    }
+                  </select>
+                </div>
+              }
+
+              <div class="edit-actions">
+                <button type="button" class="btn-cancel" (click)="cancelEdit()">
+                  Cancel
+                </button>
+                <button type="submit" class="btn-save">
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          }
+        </div>
+      }
+    </div>
+  </div>
+}

@@ -1,0 +1,123 @@
+<form (ngSubmit)="onSubmit()" class="form-container">
+  <div class="form-grid">
+    <div class="form-field">
+      <label class="form-label" for="instructor-id">
+        Instructor ID <span class="required">*</span>
+      </label>
+      <input
+        type="text"
+        id="instructor-id"
+        name="instructor_id"
+        [(ngModel)]="formData.instructor_id"
+        class="form-input"
+        placeholder="e.g., INST-001"
+        required
+      />
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="instructor-first-name">
+        First Name <span class="required">*</span>
+      </label>
+      <input
+        type="text"
+        id="instructor-first-name"
+        name="first_name"
+        [(ngModel)]="formData.first_name"
+        class="form-input"
+        placeholder="Enter first name"
+        required
+      />
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="instructor-middle-name">
+        Middle Name
+      </label>
+      <input
+        type="text"
+        id="instructor-middle-name"
+        name="middle_name"
+        [(ngModel)]="formData.middle_name"
+        class="form-input"
+        placeholder="Enter middle name (optional)"
+      />
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="instructor-last-name">
+        Last Name <span class="required">*</span>
+      </label>
+      <input
+        type="text"
+        id="instructor-last-name"
+        name="last_name"
+        [(ngModel)]="formData.last_name"
+        class="form-input"
+        placeholder="Enter last name"
+        required
+      />
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="instructor-email">
+        Email <span class="required">*</span>
+      </label>
+      <input
+        type="email"
+        id="instructor-email"
+        name="email"
+        [(ngModel)]="formData.email"
+        class="form-input"
+        placeholder="instructor@school.com"
+        required
+      />
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="instructor-phone">
+        Phone <span class="required">*</span>
+      </label>
+      <input
+        type="tel"
+        id="instructor-phone"
+        name="phone"
+        [(ngModel)]="formData.phone"
+        class="form-input"
+        placeholder="(555) 123-4567"
+        required
+      />
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="instructor-dept">
+        Department <span class="required">*</span>
+      </label>
+      <select
+        id="instructor-dept"
+        name="department"
+        [(ngModel)]="formData.department"
+        class="form-input"
+        required
+      >
+        <option value="">Select Department</option>
+        @for (dept of departments(); track dept.id) {
+          <option [value]="dept.name">{{ dept.name }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <button
+    type="submit"
+    class="submit-button"
+    [disabled]="!isFormValid() || loading()"
+  >
+    @if (loading()) {
+      <span class="button-spinner"></span>
+      <span>Creating Account...</span>
+    } @else {
+      <span>Create Instructor Account</span>
+    }
+  </button>
+</form>

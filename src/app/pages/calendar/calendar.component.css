@@ -1,1 +1,24 @@
-﻿/* calendar specific styles */
+﻿.calendar-layout {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.calendar-details {
+  position: sticky;
+  top: 1.5rem;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+@media (max-width: 1280px) {
+  .calendar-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .calendar-details {
+    position: static;
+    max-height: none;
+  }
+}

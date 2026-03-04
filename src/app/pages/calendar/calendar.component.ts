@@ -1,17 +1,24 @@
 import { Component, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DataService } from '../../services/data.service';
+import { LucideAngularModule, ChevronLeft, ChevronRight, X, Calendar } from 'lucide-angular';
 
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LucideAngularModule],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.css']
 })
 export class CalendarComponent {
   currentDate = signal(new Date());
   selectedDay = signal<any>(null);
+
+  // Lucide icons
+  readonly ChevronLeft = ChevronLeft;
+  readonly ChevronRight = ChevronRight;
+  readonly X = X;
+  readonly Calendar = Calendar;
 
   constructor(private dataService: DataService) {}
 
@@ -83,10 +90,10 @@ export class CalendarComponent {
 
   getStatusClass(status: string): string {
     const classes: Record<string, string> = {
-      'Present': 'px-3 py-1 rounded-full text-sm bg-green-100 text-green-800',
-      'Late': 'px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-800',
-      'Absent': 'px-3 py-1 rounded-full text-sm bg-red-100 text-red-800',
-      'Excused': 'px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800'
+      'Present': 'bg-emerald-100 text-emerald-700 rounded-full px-3 py-1 text-sm font-medium',
+      'Late': 'bg-amber-100 text-amber-700 rounded-full px-3 py-1 text-sm font-medium',
+      'Absent': 'bg-red-100 text-red-700 rounded-full px-3 py-1 text-sm font-medium',
+      'Excused': 'bg-blue-100 text-blue-700 rounded-full px-3 py-1 text-sm font-medium'
     };
     return classes[status] || '';
   }

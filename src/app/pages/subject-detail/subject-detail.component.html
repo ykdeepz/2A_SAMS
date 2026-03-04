@@ -1,91 +1,151 @@
-<div class="space-y-6">
+<div class="space-y-6 animate-fade-in">
   @if (subject()) {
-    <div class="flex justify-between items-center">
+    <!-- Header -->
+    <div class="header">
       <div>
-        <h2 class="text-2xl font-bold text-slate-800">{{subject()!.subject_name}}</h2>
-        <p class="text-slate-600">{{subject()!.subject_code}}</p>
+        <h2>{{subject()!.subject_name}}</h2>
+        <p class="subject-code">{{subject()!.subject_code}}</p>
+        <p style="color: #64748b; font-size: 0.875rem; margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+          <lucide-icon [img]="UserCircle" [size]="16"></lucide-icon>
+          <span>{{subject()!.instructor_name}} • Grade {{subject()!.grade_level}} - Section {{subject()!.section}}</span>
+        </p>
       </div>
-      <button (click)="router.navigate(['/take-attendance'])"
-              class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-        Take Attendance
-      </button>
+      @if (canTakeAttendance()) {
+        <button (click)="router.navigate(['/take-attendance'], { queryParams: { subjectId: subjectId } })"
+                class="take-attendance-button">
+          Take Attendance
+        </button>
+      }
     </div>
 
     <!-- Tabs -->
-    <div class="bg-white rounded-xl border shadow">
-      <div class="flex border-b">
+    <div class="tabs-card">
+      <div class="tabs-header">
         <button (click)="activeTab.set('students')"
-                [class]="'px-6 py-3 font-medium ' + (activeTab() === 'students' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-slate-600')">
-          Enrolled Students
+                [class]="'tab-button ' + (activeTab() === 'students' ? 'active' : '')">
+          <div class="tab-icon-wrapper">
+            <lucide-icon [img]="Users" [size]="20"></lucide-icon>
+          </div>
+          <span>Enrolled Students ({{enrollments().length}})</span>
         </button>
-        <button (click)="activeTab.set('attendance')"
-                [class]="'px-6 py-3 font-medium ' + (activeTab() === 'attendance' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-slate-600')">
-          Attendance Records
-        </button>
+        @if (!isStudent()) {
+          <button (click)="activeTab.set('attendance')"
+                  [class]="'tab-button ' + (activeTab() === 'attendance' ? 'active' : '')">
+            <div class="tab-icon-wrapper">
+              <lucide-icon [img]="ClipboardList" [size]="20"></lucide-icon>
+            </div>
+            <span>Attendance Records ({{subjectAttendance().length}})</span>
+          </button>
+        }
       </div>
 
-      <div class="p-6">
+      <div class="tab-content">
+        <!-- Students Tab -->
         @if (activeTab() === 'students') {
-          <div class="space-y-4">
-            <button (click)="showEnrollModal.set(true)"
-                    class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-              + Enroll Student
-            </button>
-            @for (enrollment of enrollments(); track enrollment.enrollment_id) {
-              <div class="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-                <div>
-                  <p class="font-medium">{{enrollment.student_name}}</p>
-                  <p class="text-sm text-slate-600">Enrolled: {{formatDate(enrollment.enrolled_date)}}</p>
-                </div>
-                <button (click)="unenroll(enrollment.enrollment_id)"
-                        class="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200">
-                  Unenroll
+          <div>
+            <div class="tab-content-header">
+              <h3 class="tab-content-title">Enrolled Students</h3>
+              @if (isInstructor()) {
+                <button (click)="showEnrollModal.set(true)"
+                        class="enroll-button">
+                  <lucide-icon [img]="Plus" [size]="18"></lucide-icon>
+                  <span>Enroll Student</span>
                 </button>
-              </div>
-            } @empty {
-              <p class="text-center text-slate-500 py-8">No students enrolled</p>
-            }
+              }
+            </div>
+            <div class="space-y-4">
+              @for (enrollment of enrollments(); track enrollment.enrollment_id) {
+                <div class="list-item">
+                  <div class="list-item-info">
+                    <p class="student-name">{{enrollment.student_name}}</p>
+                    <p class="student-details">Enrolled: {{formatDate(enrollment.enrolled_date)}}</p>
+                  </div>
+                  @if (canUnenrollStudent(enrollment)) {
+                    <button (click)="unenroll(enrollment.enrollment_id)"
+                            class="unenroll-button">
+                      Unenroll
+                    </button>
+                  }
+                </div>
+              } @empty {
+                <div class="empty-state">
+                  <div class="empty-icon-wrapper">
+                    <lucide-icon [img]="Users" [size]="48"></lucide-icon>
+                  </div>
+                  <p class="empty-title">No students enrolled</p>
+                  <p class="empty-text">Click "Enroll Student" to add students to this subject</p>
+                </div>
+              }
+            </div>
           </div>
         }
 
+        <!-- Attendance Tab -->
         @if (activeTab() === 'attendance') {
-          <div class="space-y-2">
-            @for (record of subjectAttendance(); track record.attendance_id) {
-              <div class="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-                <div>
-                  <p class="font-medium">{{record.student_name}}</p>
-                  <p class="text-sm text-slate-600">{{formatDate(record.date)}} - {{record.time}}</p>
+          <div>
+            <div class="tab-content-header">
+              <h3 class="tab-content-title">Attendance Records</h3>
+            </div>
+            <div class="space-y-2">
+              @for (record of subjectAttendance(); track record.attendance_id) {
+                <div class="list-item">
+                  <div class="list-item-info">
+                    <p class="student-name">{{record.student_name}}</p>
+                    <p class="record-details">{{formatDate(record.date)}} at {{record.time}}</p>
+                  </div>
+                  <span [class]="getStatusClass(record.status)">{{record.status}}</span>
                 </div>
-                <span [class]="getStatusClass(record.status)">{{record.status}}</span>
-              </div>
-            } @empty {
-              <p class="text-center text-slate-500 py-8">No attendance records</p>
-            }
+              } @empty {
+                <div class="empty-state">
+                  <div class="empty-icon-wrapper">
+                    <lucide-icon [img]="ClipboardList" [size]="48"></lucide-icon>
+                  </div>
+                  <p class="empty-title">No attendance records</p>
+                  <p class="empty-text">Attendance records will appear here once you start taking attendance</p>
+                </div>
+              }
+            </div>
           </div>
         }
       </div>
+    </div>
+  } @else {
+    <div class="empty-state">
+      <div class="empty-icon-wrapper">
+        <lucide-icon [img]="BookOpen" [size]="48"></lucide-icon>
+      </div>
+      <p class="empty-title">Subject not found</p>
+      <p class="empty-text">The subject you're looking for doesn't exist</p>
     </div>
   }
 </div>
 
 <!-- Enroll Modal -->
 @if (showEnrollModal()) {
-  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-xl p-6 w-full max-w-md max-h-96 overflow-y-auto">
-      <h3 class="text-xl font-bold mb-4">Enroll Student</h3>
+  <div class="modal-overlay" (click)="showEnrollModal.set(false)">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h3>Enroll Student</h3>
       <div class="space-y-2">
         @for (student of availableStudents(); track student.student_id) {
           <button (click)="enrollStudent(student)"
-                  class="w-full text-left p-3 bg-slate-50 hover:bg-slate-100 rounded-lg">
-            <p class="font-medium">{{student.full_name}}</p>
-            <p class="text-sm text-slate-600">Grade {{student.grade_level}} - Section {{student.section}}</p>
+                  class="student-list-item">
+            <p class="student-list-name">{{student.full_name}}</p>
+            <p class="student-list-details">
+              ID: {{student.student_id}} • Grade {{student.grade_level}} - Section {{student.section}}
+            </p>
           </button>
         } @empty {
-          <p class="text-center text-slate-500 py-4">No available students</p>
+          <div class="empty-state">
+            <div class="empty-icon-wrapper">
+              <lucide-icon [img]="Users" [size]="32"></lucide-icon>
+            </div>
+            <p class="empty-title">No available students</p>
+            <p class="empty-text">All eligible students are already enrolled in this subject</p>
+          </div>
         }
       </div>
       <button (click)="showEnrollModal.set(false)"
-              class="mt-4 w-full px-4 py-2 bg-slate-200 rounded-md hover:bg-slate-300">
+              class="modal-close-button">
         Close
       </button>
     </div>

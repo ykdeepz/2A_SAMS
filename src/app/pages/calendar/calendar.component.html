@@ -1,50 +1,87 @@
-<div class="space-y-6">
-  <div class="flex justify-between items-center">
-    <h2 class="text-2xl font-bold text-slate-800">Attendance Calendar</h2>
-    <div class="flex gap-2">
-      <button (click)="previousMonth()" class="px-3 py-2 bg-slate-200 rounded-md hover:bg-slate-300">←</button>
-      <span class="px-4 py-2 font-semibold">{{currentMonthYear()}}</span>
-      <button (click)="nextMonth()" class="px-3 py-2 bg-slate-200 rounded-md hover:bg-slate-300">→</button>
+<div class="space-y-6 animate-fade-in">
+  <!-- Header with Navigation -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-2xl font-bold text-slate-800">Attendance Calendar</h2>
+      <p class="text-slate-600 mt-1">View attendance records by date</p>
+    </div>
+    <div class="flex items-center gap-4 bg-white rounded-lg border border-slate-200 px-4 py-2 shadow-sm">
+      <button (click)="previousMonth()" 
+              class="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+        <lucide-icon [img]="ChevronLeft" [size]="20" class="text-slate-600"></lucide-icon>
+      </button>
+      <span class="text-lg font-semibold text-slate-800 min-w-[180px] text-center">{{currentMonthYear()}}</span>
+      <button (click)="nextMonth()" 
+              class="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+        <lucide-icon [img]="ChevronRight" [size]="20" class="text-slate-600"></lucide-icon>
+      </button>
     </div>
   </div>
 
-  <div class="bg-white rounded-xl border shadow p-6">
-    <div class="grid grid-cols-7 gap-2">
-      @for (day of ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']; track day) {
-        <div class="text-center font-semibold text-slate-700 py-2">{{day}}</div>
-      }
-      @for (day of calendarDays(); track day.date) {
-        <div [class]="'p-4 border rounded-lg hover:bg-indigo-50 transition-colors cursor-pointer ' + (day.isCurrentMonth ? 'bg-white' : 'bg-slate-50 text-slate-400')"
-             (click)="selectDay(day)">
-          <div class="text-sm font-semibold mb-1">{{day.day}}</div>
-          @if (day.attendanceCount > 0) {
-            <div class="text-xs bg-indigo-100 text-indigo-800 rounded px-1">
-              {{day.attendanceCount}} records
-            </div>
-          }
-        </div>
-      }
-    </div>
-  </div>
-
-  @if (selectedDay()) {
-    <div class="bg-white rounded-xl border shadow p-6">
-      <h3 class="text-lg font-semibold mb-4">{{formatDate(selectedDay()!.date)}}</h3>
-      @if (selectedDayRecords().length > 0) {
-        <div class="space-y-2">
-          @for (record of selectedDayRecords(); track record.attendance_id) {
-            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-              <div>
-                <p class="font-medium">{{record.student_name}}</p>
-                <p class="text-sm text-slate-600">{{record.subject_name}}</p>
+  <!-- Calendar Layout -->
+  <div class="calendar-layout">
+    <!-- Calendar Grid -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="grid grid-cols-7 gap-px bg-slate-200">
+        @for (day of ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']; track day) {
+          <div class="bg-slate-50 px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider">
+            {{day}}
+          </div>
+        }
+        @for (day of calendarDays(); track day.date) {
+          <div [class]="'bg-white p-3 min-h-[100px] cursor-pointer hover:bg-slate-50 transition-colors duration-200 ' + 
+                        (day.isCurrentMonth ? '' : 'opacity-40')"
+               (click)="selectDay(day)">
+            <div class="flex flex-col h-full">
+              <div [class]="'text-sm font-medium mb-2 ' + 
+                           (day.isCurrentMonth ? 'text-slate-800' : 'text-slate-400')">
+                {{day.day}}
               </div>
-              <span [class]="getStatusClass(record.status)">{{record.status}}</span>
+              @if (day.attendanceCount > 0) {
+                <div class="mt-auto">
+                  <div class="bg-indigo-100 text-indigo-700 rounded px-2 py-1 text-xs font-medium text-center">
+                    {{day.attendanceCount}} record{{day.attendanceCount > 1 ? 's' : ''}}
+                  </div>
+                </div>
+              }
             </div>
-          }
-        </div>
-      } @else {
-        <p class="text-center text-slate-500 py-4">No records for this day</p>
-      }
+          </div>
+        }
+      </div>
     </div>
-  }
+
+    <!-- Selected Day Details -->
+    @if (selectedDay()) {
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 animate-slide-up calendar-details">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-xl font-bold text-slate-800">{{formatDate(selectedDay()!.date)}}</h3>
+          <button (click)="selectedDay.set(null)" 
+                  class="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+            <lucide-icon [img]="X" [size]="20" class="text-slate-600"></lucide-icon>
+          </button>
+        </div>
+        
+        @if (selectedDayRecords().length > 0) {
+          <div class="space-y-3">
+            @for (record of selectedDayRecords(); track record.attendance_id) {
+              <div class="flex items-center justify-between p-4 border border-slate-100 rounded-lg hover:bg-slate-50 transition-colors duration-200">
+                <div class="flex-1">
+                  <p class="font-semibold text-slate-800">{{record.student_name}}</p>
+                  <p class="text-sm text-slate-500">{{record.subject_name}} • {{record.time}}</p>
+                </div>
+                <span [class]="getStatusClass(record.status)">{{record.status}}</span>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="text-center py-8">
+            <div class="w-12 h-12 text-slate-300 mx-auto mb-3 flex items-center justify-center">
+              <lucide-icon [img]="Calendar" [size]="48"></lucide-icon>
+            </div>
+            <p class="text-slate-600">No attendance records for this day</p>
+          </div>
+        }
+      </div>
+    }
+  </div>
 </div>
