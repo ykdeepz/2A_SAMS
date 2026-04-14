@@ -203,7 +203,6 @@ Based on instructor comments (originally in Cebuano):
 | `ipolished` | Original branch pulled from GitHub |
 | `deepz-test-edit` | Main working branch — all changes here |
 | `main` | Pushed as duplicate of `deepz-test-edit` |
-| `copy-for-deepz` | Created then deleted |
 
 ---
 
