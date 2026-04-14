@@ -1,15 +1,23 @@
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 p-3 md:p-4">
-  <div class="bg-white rounded-xl md:rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-md animate-fade-in">
+<div class="login-wrapper">
+  <!-- Video Background -->
+  <video class="login-video-bg" autoplay muted loop playsinline>
+    <source src="backgroundpls.mp4" type="video/mp4">
+  </video>
+  <!-- Overlay -->
+  <div class="login-overlay"></div>
+
+  <!-- Glass Card -->
+  <div class="login-card animate-fade-in">
     <div class="text-center mb-6 md:mb-8">
       <div class="w-12 md:w-16 h-12 md:h-16 icon-primary rounded-lg md:rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-lg">
         <lucide-icon [img]="CheckCircle2" [size]="32"></lucide-icon>
       </div>
-      <h1 class="text-2xl md:text-3xl font-bold text-slate-800 mb-1 md:mb-2">WELCOME TO SAMS</h1>
-      <p class="text-sm md:text-base text-slate-600">Sign in to your account</p>
+      <h1 class="text-2xl md:text-3xl font-bold text-white mb-1 md:mb-2">WELCOME TO SAMS</h1>
+      <p class="text-sm md:text-base text-white/70">Sign in to your account</p>
     </div>
 
     @if (error()) {
-      <div class="bg-red-50 border border-red-200 text-red-700 px-3 md:px-4 py-2 md:py-3 rounded-lg mb-6 flex items-center gap-2 md:gap-3 animate-slide-up text-sm md:text-base">
+      <div class="bg-red-500/20 border border-red-400/40 text-red-200 px-3 md:px-4 py-2 md:py-3 rounded-lg mb-6 flex items-center gap-2 md:gap-3 animate-slide-up text-sm md:text-base">
         <lucide-icon [img]="AlertCircle" [size]="18"></lucide-icon>
         <span>{{error()}}</span>
       </div>
@@ -17,24 +25,24 @@
 
     <form (ngSubmit)="onSubmit()" class="space-y-4 md:space-y-5">
       <div>
-        <label class="block text-xs md:text-sm font-medium text-slate-700 mb-1 md:mb-2">Email Address</label>
-        <input type="email" 
-               [(ngModel)]="email" 
-               name="email" 
+        <label class="block text-xs md:text-sm font-medium text-white/80 mb-1 md:mb-2">Email Address</label>
+        <input type="email"
+               [(ngModel)]="email"
+               name="email"
                required
                placeholder="Enter your email"
-               class="w-full px-3 md:px-4 py-2 md:py-3 text-sm md:text-base border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all">
+               class="login-input">
       </div>
 
       <div>
-        <label class="block text-xs md:text-sm font-medium text-slate-700 mb-1 md:mb-2">Password</label>
+        <label class="block text-xs md:text-sm font-medium text-white/80 mb-1 md:mb-2">Password</label>
         <div class="relative">
           <input [type]="showPassword() ? 'text' : 'password'"
-                 [(ngModel)]="password" 
-                 name="password" 
+                 [(ngModel)]="password"
+                 name="password"
                  required
                  placeholder="Enter your password"
-                 class="w-full px-3 md:px-4 py-2 md:py-3 pr-10 md:pr-12 text-sm md:text-base border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all">
+                 class="login-input pr-10 md:pr-12">
           <button type="button" (click)="showPassword.set(!showPassword())" class="eye-toggle">
             <span class="eye-icon-wrap" [class.hidden-pass]="!showPassword()">
               <span class="icon-eye"><lucide-icon [img]="Eye" [size]="18"></lucide-icon></span>
@@ -44,7 +52,7 @@
         </div>
       </div>
 
-      <button type="submit" 
+      <button type="submit"
               [disabled]="loading()"
               class="w-full btn-primary py-2 md:py-3 rounded-lg font-medium shadow-sm flex items-center justify-center gap-2 text-sm md:text-base">
         @if (loading()) {
@@ -57,15 +65,13 @@
       </button>
     </form>
 
-    <div class="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-slate-200">
-      <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-        <p class="text-xs text-amber-800 text-center">
-          <span class="font-semibold">Note:</span> Other accounts must be created by the admin.
+    <div class="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-white/20">
+      <div class="p-3 rounded-lg bg-white/10 border border-white/20">
+        <p class="text-xs text-white/70 text-center">
+          <span class="font-semibold text-white/90">Note:</span> Other accounts must be created by the admin.
           No demo accounts available.
         </p>
       </div>
     </div>
   </div>
 </div>
-
-

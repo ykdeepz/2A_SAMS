@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { DataService } from '../../services/data.service';
 import { AuthService } from '../../services/auth.service';
 import { LucideAngularModule, QrCode, Copy, Download, X, Users } from 'lucide-angular';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '../../firebase.config';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -133,7 +135,7 @@ export class QrCodeGeneratorComponent implements OnInit, OnDestroy {
   generatingQR = signal(false);
   sessionLog = { start: null as Date | null, end: null as Date | null };
 
-  private pollInterval: any;
+  private unsubscribe?: () => void;
 
   subjectLabel = computed(() => {
     const subject = this.dataService.subjects().find(s => s.subject_id === this.subjectId);
@@ -173,12 +175,15 @@ export class QrCodeGeneratorComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    // Poll data service every 3s to refresh live scans
-    this.pollInterval = setInterval(() => this.dataService.loadAttendance(), 3000);
+    // Real-time listener — updates live scan feed instantly when students scan
+    this.unsubscribe = onSnapshot(collection(db, 'attendance'), (snap) => {
+      const records = snap.docs.map(d => ({ ...d.data(), _docId: d.id })) as any[];
+      this.dataService.attendance.set(records);
+    });
   }
 
   ngOnDestroy() {
-    clearInterval(this.pollInterval);
+    if (this.unsubscribe) this.unsubscribe();
   }
 
   async generateQRCode() {

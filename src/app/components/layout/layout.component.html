@@ -84,7 +84,22 @@
 
     <!-- Page Content -->
     <main class="flex-1 overflow-auto p-4 md:p-6 bg-slate-50">
-      <router-outlet></router-outlet>
+      @if (dataService.loading()) {
+        <div class="flex flex-col items-center justify-center h-64 gap-4">
+          <div class="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin" style="border-color: var(--primary); border-top-color: transparent;"></div>
+          <p class="text-slate-500 text-sm font-medium">Loading data...</p>
+        </div>
+      } @else if (dataService.loadError()) {
+        <div class="flex flex-col items-center justify-center h-64 gap-4 text-center">
+          <p class="text-red-600 font-semibold text-lg">Failed to connect to the database.</p>
+          <p class="text-slate-500 text-sm">Check your internet connection and try refreshing the page.</p>
+          <button (click)="dataService.loadAllData()" class="btn-primary px-6 py-2 rounded-lg font-medium text-sm">
+            Retry
+          </button>
+        </div>
+      } @else {
+        <router-outlet></router-outlet>
+      }
     </main>
   </div>
 </div>

@@ -83,11 +83,16 @@ export class SettingsComponent {
     const user = this.authService.currentUser();
     if (!user) return;
 
-    // Verify current password against DB
     try {
-      const users = await this.dataService.loadUsers().then(() => this.dataService.users());
-      const dbUser = users.find(u => u.user_id === user.user_id);
-      if (!dbUser || (dbUser as any).password !== this.passwordForm.current) {
+      // Reload users from Firestore to get the password field
+      await this.dataService.loadUsers();
+      const dbUser = this.dataService.users().find(u => u.user_id === user.user_id);
+
+      if (!dbUser) {
+        this.showMessage('User not found', 'error');
+        return;
+      }
+      if ((dbUser as any).password !== this.passwordForm.current) {
         this.showMessage('Current password is incorrect', 'error');
         return;
       }

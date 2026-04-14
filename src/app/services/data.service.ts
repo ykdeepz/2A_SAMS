@@ -1,412 +1,286 @@
-import { Injectable, signal, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, signal } from '@angular/core';
+import {
+  collection, getDocs, addDoc, updateDoc, deleteDoc, doc
+} from 'firebase/firestore';
+import { db } from '../firebase.config';
 import { Student, Subject, Attendance, SubjectEnrollment, Instructor, Parent, User, Department } from '../models/user.model';
-import { firstValueFrom } from 'rxjs';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class DataService {
-  private http = inject(HttpClient);
-  private apiUrl = this.getApiUrl();
-  
-  private getApiUrl(): string {
-    if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname;
-      const protocol = window.location.protocol;
-      if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-        return `${protocol}//${hostname}:3000`;
-      }
-    }
-    return 'http://localhost:3000';
-  }
 
-  students = signal<Student[]>([]);
-  subjects = signal<Subject[]>([]);
-  attendance = signal<Attendance[]>([]);
+  students    = signal<Student[]>([]);
+  subjects    = signal<Subject[]>([]);
+  attendance  = signal<Attendance[]>([]);
   enrollments = signal<SubjectEnrollment[]>([]);
   instructors = signal<Instructor[]>([]);
-  parents = signal<Parent[]>([]);
-  users = signal<User[]>([]);
+  parents     = signal<Parent[]>([]);
+  users       = signal<User[]>([]);
   departments = signal<Department[]>([]);
+  loading     = signal(true);
+  loadError   = signal(false);
 
-  constructor() {
-    this.loadAllData();
-  }
+  constructor() { this.loadAllData(); }
 
   async loadAllData() {
-    await Promise.all([
-      this.loadStudents(),
-      this.loadSubjects(),
-      this.loadAttendance(),
-      this.loadEnrollments(),
-      this.loadInstructors(),
-      this.loadParents(),
-      this.loadUsers(),
-      this.loadDepartments()
-    ]);
+    this.loading.set(true);
+    this.loadError.set(false);
+    try {
+      const results = await Promise.allSettled([
+        this.loadUsers(), this.loadStudents(), this.loadSubjects(),
+        this.loadAttendance(), this.loadEnrollments(), this.loadInstructors(),
+        this.loadParents(), this.loadDepartments()
+      ]);
+      const failed = results.filter(r => r.status === 'rejected');
+      if (failed.length > 0) {
+        console.error('Some collections failed to load:', failed);
+        this.loadError.set(true);
+      }
+    } catch (e) {
+      console.error('Failed to load data:', e);
+      this.loadError.set(true);
+    } finally {
+      this.loading.set(false);
+    }
   }
 
-  // Users
+  // ── Helpers ──────────────────────────────────────────────
+  private async getAll<T>(col: string): Promise<T[]> {
+    const snap = await getDocs(collection(db, col));
+    return snap.docs.map(d => ({ ...d.data(), _docId: d.id }) as T);
+  }
+
+  // Strip _docId before writing to Firestore
+  private clean(data: any): any {
+    const { _docId, ...rest } = data;
+    return rest;
+  }
+
+  private async addDoc_<T extends object>(col: string, data: T): Promise<T> {
+    const ref = await addDoc(collection(db, col), this.clean(data));
+    return { ...data, _docId: ref.id };
+  }
+
+  private async updateDoc_(col: string, docId: string, data: object) {
+    await updateDoc(doc(db, col, docId), this.clean(data) as any);
+  }
+
+  private async deleteDoc_(col: string, docId: string) {
+    await deleteDoc(doc(db, col, docId));
+  }
+
+  // Always look up the stored object to get _docId — never trust the passed object
+  private findDocId(stored: any[], key: string, value: any): string {
+    const item = stored.find(x => x[key] === value);
+    if (!item?._docId) throw new Error(`_docId not found for ${key}=${value}`);
+    return item._docId;
+  }
+
+  // ── Users ─────────────────────────────────────────────────
   async loadUsers() {
-    try {
-      const users = await firstValueFrom(this.http.get<User[]>(`${this.apiUrl}/users`));
-      this.users.set(users);
-    } catch (error) {
-      console.error('Error loading users:', error);
-    }
+    try { this.users.set(await this.getAll<User>('users')); }
+    catch (e) { console.error(e); throw e; }
   }
 
   async addUser(user: User) {
-    try {
-      const newUser = await firstValueFrom(this.http.post<User>(`${this.apiUrl}/users`, user));
-      this.users.update(u => [...u, newUser]);
-      return newUser;
-    } catch (error) {
-      console.error('Error adding user:', error);
-      throw error;
-    }
+    const saved = await this.addDoc_('users', user);
+    this.users.update(u => [...u, saved]);
+    return saved;
   }
 
   async updateUser(user: User) {
-    try {
-      const numericId = (user as any).id;
-      const updated = await firstValueFrom(this.http.put<User>(`${this.apiUrl}/users/${numericId}`, user));
-      this.users.update(u => u.map(usr => usr.user_id === user.user_id ? updated : usr));
-      return updated;
-    } catch (error) {
-      console.error('Error updating user:', error);
-      throw error;
-    }
+    const docId = this.findDocId(this.users(), 'user_id', user.user_id);
+    await this.updateDoc_('users', docId, user);
+    this.users.update(u => u.map(x => x.user_id === user.user_id ? { ...user, _docId: docId } as any : x));
+    return user;
   }
 
   async deleteUser(userId: string) {
-    try {
-      const user = this.users().find(u => u.user_id === userId);
-      if (!user) throw new Error('User not found');
-      const numericId = (user as any).id;
-      await firstValueFrom(this.http.delete(`${this.apiUrl}/users/${numericId}`));
-      this.users.update(u => u.filter(usr => usr.user_id !== userId));
-      return true;
-    } catch (error) {
-      console.error('Error deleting user:', error);
-      throw error;
-    }
+    const docId = this.findDocId(this.users(), 'user_id', userId);
+    await this.deleteDoc_('users', docId);
+    this.users.update(u => u.filter(x => x.user_id !== userId));
+    return true;
   }
 
-  // Students
+  // ── Students ──────────────────────────────────────────────
   async loadStudents() {
-    try {
-      const students = await firstValueFrom(this.http.get<Student[]>(`${this.apiUrl}/students`));
-      this.students.set(students);
-    } catch (error) {
-      console.error('Error loading students:', error);
-    }
+    try { this.students.set(await this.getAll<Student>('students')); }
+    catch (e) { console.error(e); throw e; }
   }
 
   getStudents() { return this.students(); }
-  
+
   async addStudent(student: Student) {
-    try {
-      const newStudent = await firstValueFrom(this.http.post<Student>(`${this.apiUrl}/students`, student));
-      this.students.update(s => [...s, newStudent]);
-      return newStudent;
-    } catch (error) {
-      console.error('Error adding student:', error);
-      throw error;
-    }
+    const saved = await this.addDoc_('students', student);
+    this.students.update(s => [...s, saved]);
+    return saved;
   }
 
   async updateStudent(student: Student) {
-    try {
-      const numericId = (student as any).id;
-      const updated = await firstValueFrom(this.http.put<Student>(`${this.apiUrl}/students/${numericId}`, student));
-      this.students.update(s => s.map(st => st.student_id === student.student_id ? updated : st));
-      return updated;
-    } catch (error) {
-      console.error('Error updating student:', error);
-      throw error;
-    }
+    const docId = this.findDocId(this.students(), 'student_id', student.student_id);
+    await this.updateDoc_('students', docId, student);
+    this.students.update(s => s.map(x => x.student_id === student.student_id ? { ...student, _docId: docId } as any : x));
+    return student;
   }
 
   async deleteStudent(studentId: string) {
-    try {
-      const student = this.students().find(s => s.student_id === studentId);
-      if (!student || !(student as any).id) throw new Error('Student not found');
-      await firstValueFrom(this.http.delete(`${this.apiUrl}/students/${(student as any).id}`));
-      this.students.update(s => s.filter(st => st.student_id !== studentId));
-    } catch (error) {
-      console.error('Error deleting student:', error);
-      throw error;
-    }
+    const docId = this.findDocId(this.students(), 'student_id', studentId);
+    await this.deleteDoc_('students', docId);
+    this.students.update(s => s.filter(x => x.student_id !== studentId));
   }
 
-  // Subjects
+  // ── Subjects ──────────────────────────────────────────────
   async loadSubjects() {
-    try {
-      const subjects = await firstValueFrom(this.http.get<Subject[]>(`${this.apiUrl}/subjects`));
-      this.subjects.set(subjects);
-    } catch (error) {
-      console.error('Error loading subjects:', error);
-    }
+    try { this.subjects.set(await this.getAll<Subject>('subjects')); }
+    catch (e) { console.error(e); throw e; }
   }
 
   getSubjects() { return this.subjects(); }
-  
+
   async addSubject(subject: Subject) {
-    try {
-      const newSubject = await firstValueFrom(this.http.post<Subject>(`${this.apiUrl}/subjects`, subject));
-      this.subjects.update(s => [...s, newSubject]);
-      return newSubject;
-    } catch (error) {
-      console.error('Error adding subject:', error);
-      throw error;
-    }
+    const saved = await this.addDoc_('subjects', subject);
+    this.subjects.update(s => [...s, saved]);
+    return saved;
   }
 
   async updateSubject(subject: Subject) {
-    try {
-      const updated = await firstValueFrom(this.http.put<Subject>(`${this.apiUrl}/subjects/${subject.subject_id}`, subject));
-      this.subjects.update(s => s.map(sub => sub.subject_id === subject.subject_id ? updated : sub));
-      return updated;
-    } catch (error) {
-      console.error('Error updating subject:', error);
-      throw error;
-    }
+    const docId = this.findDocId(this.subjects(), 'subject_id', subject.subject_id);
+    await this.updateDoc_('subjects', docId, subject);
+    this.subjects.update(s => s.map(x => x.subject_id === subject.subject_id ? { ...subject, _docId: docId } as any : x));
+    return subject;
   }
 
   async deleteSubject(id: string) {
-    try {
-      const subject = this.subjects().find(s => s.subject_id === id);
-      if (!subject || !(subject as any).id) throw new Error('Subject not found');
-      await firstValueFrom(this.http.delete(`${this.apiUrl}/subjects/${(subject as any).id}`));
-      this.subjects.update(s => s.filter(sub => sub.subject_id !== id));
-    } catch (error) {
-      console.error('Error deleting subject:', error);
-      throw error;
-    }
+    const docId = this.findDocId(this.subjects(), 'subject_id', id);
+    await this.deleteDoc_('subjects', docId);
+    this.subjects.update(s => s.filter(x => x.subject_id !== id));
   }
 
-  // Attendance
+  // ── Attendance ────────────────────────────────────────────
   async loadAttendance() {
-    try {
-      const attendance = await firstValueFrom(this.http.get<Attendance[]>(`${this.apiUrl}/attendance`));
-      this.attendance.set(attendance);
-    } catch (error) {
-      console.error('Error loading attendance:', error);
-    }
+    try { this.attendance.set(await this.getAll<Attendance>('attendance')); }
+    catch (e) { console.error(e); throw e; }
   }
 
   getAttendance() { return this.attendance(); }
-  
+
   async addAttendance(record: Attendance) {
-    // Check for duplicate
-    const exists = this.attendance().some(a => 
-      a.student_id === record.student_id && 
-      a.subject_id === record.subject_id && 
+    const exists = this.attendance().some(a =>
+      a.student_id === record.student_id &&
+      a.subject_id === record.subject_id &&
       new Date(a.date).toDateString() === new Date(record.date).toDateString()
     );
     if (exists) return false;
-
-    try {
-      const newRecord = await firstValueFrom(this.http.post<Attendance>(`${this.apiUrl}/attendance`, record));
-      this.attendance.update(a => [...a, newRecord]);
-      return true;
-    } catch (error) {
-      console.error('Error adding attendance:', error);
-      return false;
-    }
+    const saved = await this.addDoc_('attendance', record);
+    this.attendance.update(a => [...a, saved]);
+    return true;
   }
 
-  // Enrollments
+  // ── Enrollments ───────────────────────────────────────────
   async loadEnrollments() {
-    try {
-      const enrollments = await firstValueFrom(this.http.get<SubjectEnrollment[]>(`${this.apiUrl}/enrollments`));
-      this.enrollments.set(enrollments);
-    } catch (error) {
-      console.error('Error loading enrollments:', error);
-    }
+    try { this.enrollments.set(await this.getAll<SubjectEnrollment>('enrollments')); }
+    catch (e) { console.error(e); throw e; }
   }
 
   getEnrollments() { return this.enrollments(); }
-  
+
   async enrollStudent(enrollment: SubjectEnrollment) {
-    try {
-      const newEnrollment = await firstValueFrom(this.http.post<SubjectEnrollment>(`${this.apiUrl}/enrollments`, enrollment));
-      this.enrollments.update(e => [...e, newEnrollment]);
-      return newEnrollment;
-    } catch (error) {
-      console.error('Error enrolling student:', error);
-      throw error;
-    }
+    const saved = await this.addDoc_('enrollments', enrollment);
+    this.enrollments.update(e => [...e, saved]);
+    return saved;
   }
 
   async unenrollStudent(enrollmentId: string) {
-    try {
-      const enrollment = this.enrollments().find(e => e.enrollment_id === enrollmentId);
-      if (!enrollment || !(enrollment as any).id) throw new Error('Enrollment not found');
-      await firstValueFrom(this.http.delete(`${this.apiUrl}/enrollments/${(enrollment as any).id}`));
-      this.enrollments.update(e => e.filter(enr => enr.enrollment_id !== enrollmentId));
-    } catch (error) {
-      console.error('Error unenrolling student:', error);
-      throw error;
-    }
+    const docId = this.findDocId(this.enrollments(), 'enrollment_id', enrollmentId);
+    await this.deleteDoc_('enrollments', docId);
+    this.enrollments.update(e => e.filter(x => x.enrollment_id !== enrollmentId));
   }
 
-  // Instructors
+  // ── Instructors ───────────────────────────────────────────
   async loadInstructors() {
-    try {
-      const instructors = await firstValueFrom(this.http.get<Instructor[]>(`${this.apiUrl}/instructors`));
-      this.instructors.set(instructors);
-    } catch (error) {
-      console.error('Error loading instructors:', error);
-    }
+    try { this.instructors.set(await this.getAll<Instructor>('instructors')); }
+    catch (e) { console.error(e); throw e; }
   }
 
   getInstructors() { return this.instructors(); }
 
   async getInstructorByUserId(userId: string): Promise<Instructor | undefined> {
-    try {
-      const instructors = await firstValueFrom(this.http.get<Instructor[]>(`${this.apiUrl}/instructors?user_id=${userId}`));
-      return instructors[0];
-    } catch (error) {
-      console.error('Error getting instructor by user ID:', error);
-      return undefined;
-    }
+    return this.instructors().find(i => i.user_id === userId);
   }
 
-  
   async addInstructor(instructor: Instructor) {
-    try {
-      const newInstructor = await firstValueFrom(this.http.post<Instructor>(`${this.apiUrl}/instructors`, instructor));
-      this.instructors.update(i => [...i, newInstructor]);
-      return newInstructor;
-    } catch (error) {
-      console.error('Error adding instructor:', error);
-      throw error;
-    }
+    const saved = await this.addDoc_('instructors', instructor);
+    this.instructors.update(i => [...i, saved]);
+    return saved;
   }
 
   async updateInstructor(instructor: Instructor) {
-    try {
-      const numericId = (instructor as any).id;
-      const updated = await firstValueFrom(this.http.put<Instructor>(`${this.apiUrl}/instructors/${numericId}`, instructor));
-      this.instructors.update(i => i.map(inst => inst.instructor_id === instructor.instructor_id ? updated : inst));
-      return updated;
-    } catch (error) {
-      console.error('Error updating instructor:', error);
-      throw error;
-    }
+    const docId = this.findDocId(this.instructors(), 'instructor_id', instructor.instructor_id);
+    await this.updateDoc_('instructors', docId, instructor);
+    this.instructors.update(i => i.map(x => x.instructor_id === instructor.instructor_id ? { ...instructor, _docId: docId } as any : x));
+    return instructor;
   }
 
   async deleteInstructor(instructorId: string) {
-    try {
-      const instructor = this.instructors().find(i => i.instructor_id === instructorId);
-      if (!instructor || !(instructor as any).id) throw new Error('Instructor not found');
-      await firstValueFrom(this.http.delete(`${this.apiUrl}/instructors/${(instructor as any).id}`));
-      this.instructors.update(i => i.filter(inst => inst.instructor_id !== instructorId));
-    } catch (error) {
-      console.error('Error deleting instructor:', error);
-      throw error;
-    }
+    const docId = this.findDocId(this.instructors(), 'instructor_id', instructorId);
+    await this.deleteDoc_('instructors', docId);
+    this.instructors.update(i => i.filter(x => x.instructor_id !== instructorId));
   }
 
-  // Parents
+  // ── Parents ───────────────────────────────────────────────
   async loadParents() {
-    try {
-      const parents = await firstValueFrom(this.http.get<Parent[]>(`${this.apiUrl}/parents`));
-      this.parents.set(parents);
-    } catch (error) {
-      console.error('Error loading parents:', error);
-    }
+    try { this.parents.set(await this.getAll<Parent>('parents')); }
+    catch (e) { console.error(e); throw e; }
   }
 
   getParents() { return this.parents(); }
-  
+
   async addParent(parent: Parent) {
-    try {
-      const newParent = await firstValueFrom(this.http.post<Parent>(`${this.apiUrl}/parents`, parent));
-      this.parents.update(p => [...p, newParent]);
-      return newParent;
-    } catch (error) {
-      console.error('Error adding parent:', error);
-      throw error;
-    }
+    const saved = await this.addDoc_('parents', parent);
+    this.parents.update(p => [...p, saved]);
+    return saved;
   }
 
   async updateParent(parent: Parent) {
-    try {
-      const numericId = (parent as any).id;
-      const updated = await firstValueFrom(this.http.put<Parent>(`${this.apiUrl}/parents/${numericId}`, parent));
-      this.parents.update(p => p.map(par => par.parent_id === parent.parent_id ? updated : par));
-      return updated;
-    } catch (error) {
-      console.error('Error updating parent:', error);
-      throw error;
-    }
+    const docId = this.findDocId(this.parents(), 'parent_id', parent.parent_id);
+    await this.updateDoc_('parents', docId, parent);
+    this.parents.update(p => p.map(x => x.parent_id === parent.parent_id ? { ...parent, _docId: docId } as any : x));
+    return parent;
   }
 
   async deleteParent(parentId: string) {
-    try {
-      const parent = this.parents().find(p => p.parent_id === parentId);
-      if (!parent || !(parent as any).id) throw new Error('Parent not found');
-      await firstValueFrom(this.http.delete(`${this.apiUrl}/parents/${(parent as any).id}`));
-      this.parents.update(p => p.filter(par => par.parent_id !== parentId));
-    } catch (error) {
-      console.error('Error deleting parent:', error);
-      throw error;
-    }
+    const docId = this.findDocId(this.parents(), 'parent_id', parentId);
+    await this.deleteDoc_('parents', docId);
+    this.parents.update(p => p.filter(x => x.parent_id !== parentId));
   }
 
-  // Departments
+  // ── Departments ───────────────────────────────────────────
   async loadDepartments() {
-    try {
-      const departments = await firstValueFrom(this.http.get<Department[]>(`${this.apiUrl}/departments`));
-      // Remove duplicates by id to ensure no duplicate departments
-      const uniqueDepartments = departments.filter((dept, index, self) =>
-        self.findIndex(d => d.id === dept.id) === index
-      );
-      this.departments.set(uniqueDepartments);
-    } catch (error) {
-      console.error('Error loading departments:', error);
-    }
+    try { this.departments.set(await this.getAll<Department>('departments')); }
+    catch (e) { console.error(e); throw e; }
   }
 
   getDepartments() { return this.departments(); }
-  
+
   async addDepartment(department: Department) {
-    try {
-      const newDepartment = await firstValueFrom(this.http.post<Department>(`${this.apiUrl}/departments`, department));
-      // Only add if not already in the list
-      this.departments.update(d => {
-        const isDuplicate = d.some(dept => dept.id === newDepartment.id);
-        return isDuplicate ? d : [...d, newDepartment];
-      });
-      return newDepartment;
-    } catch (error) {
-      console.error('Error adding department:', error);
-      throw error;
-    }
+    const saved = await this.addDoc_('departments', department);
+    this.departments.update(d => [...d, saved]);
+    return saved;
   }
 
   async updateDepartment(department: Department) {
-    try {
-      const updated = await firstValueFrom(this.http.put<Department>(`${this.apiUrl}/departments/${department.id}`, department));
-      this.departments.update(d => d.map(dept => dept.id === department.id ? updated : dept));
-      return updated;
-    } catch (error) {
-      console.error('Error updating department:', error);
-      throw error;
-    }
+    // Use _docId directly from the passed object (set when fetched from Firestore)
+    const docId = (department as any)._docId;
+    if (!docId) throw new Error('Department _docId missing');
+    await this.updateDoc_('departments', docId, department);
+    this.departments.update(d => d.map(x => (x as any)._docId === docId ? { ...department, _docId: docId } as any : x));
+    return department;
   }
 
-  async deleteDepartment(id: number) {
-    try {
-      await firstValueFrom(this.http.delete(`${this.apiUrl}/departments/${id}`));
-      this.departments.update(d => d.filter(dept => dept.id !== id));
-    } catch (error) {
-      console.error('Error deleting department:', error);
-      throw error;
-    }
+  async deleteDepartment(dept: Department) {
+    const docId = (dept as any)._docId;
+    if (!docId) throw new Error('Department _docId missing');
+    await this.deleteDoc_('departments', docId);
+    this.departments.update(d => d.filter(x => (x as any)._docId !== docId));
   }
 }
+

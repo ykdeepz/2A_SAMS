@@ -84,8 +84,6 @@ export class DepartmentsComponent {
   }
 
   async deleteDepartment(dept: Department) {
-    if (!dept.id) return;
-    
     const result = await Swal.fire({
       title: 'Delete Department?',
       text: `Are you sure you want to delete "${dept.name}"?`,
@@ -99,21 +97,10 @@ export class DepartmentsComponent {
 
     if (result.isConfirmed) {
       try {
-        await this.dataService.deleteDepartment(dept.id);
-        
-        await Swal.fire({
-          title: 'Deleted!',
-          text: 'Department has been deleted',
-          icon: 'success',
-          timer: 2000,
-          showConfirmButton: false
-        });
+        await this.dataService.deleteDepartment(dept);
+        await Swal.fire({ title: 'Deleted!', text: 'Department has been deleted', icon: 'success', timer: 2000, showConfirmButton: false });
       } catch (error) {
-        await Swal.fire({
-          title: 'Error!',
-          text: 'Failed to delete department',
-          icon: 'error'
-        });
+        await Swal.fire({ title: 'Error!', text: 'Failed to delete department', icon: 'error' });
       }
     }
   }

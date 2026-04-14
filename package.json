@@ -43,6 +43,7 @@
     "@fullcalendar/interaction": "^6.1.20",
     "@zxing/library": "^0.21.3",
     "express": "^5.1.0",
+    "firebase": "^12.12.0",
     "framer-motion": "^12.34.3",
     "lucide-angular": "^0.576.0",
     "qrcode": "^1.5.4",
