@@ -75,6 +75,7 @@ export interface SubjectEnrollment {
   student_name?: string; // deprecated - use student_id to look up
   subject_name?: string; // deprecated - use subject_id to look up
   enrolled_date: Date;
+  _docId?: string; // Firebase document ID
 }
 
 export interface Attendance {
@@ -89,6 +90,7 @@ export interface Attendance {
   time: string;
   status: 'Present' | 'Late' | 'Absent' | 'Excused';
   method: 'QR' | 'Manual';
+  _docId?: string; // Firebase document ID
 }
 
 export interface Department {

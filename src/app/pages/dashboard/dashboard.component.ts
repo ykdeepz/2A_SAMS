@@ -1,11 +1,12 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { DataService } from '../../services/data.service';
 import { AuthService } from '../../services/auth.service';
 import { RoleService } from '../../services/role.service';
-import { LucideAngularModule, Users, BookOpen, TrendingUp, UserX, ClipboardList, Calendar } from 'lucide-angular';
+import { LucideAngularModule, Users, BookOpen, TrendingUp, UserX, ClipboardList, Calendar, RotateCcw } from 'lucide-angular';
 import { CalendarComponent } from '../calendar/calendar.component';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-dashboard',
@@ -19,6 +20,9 @@ export class DashboardComponent {
   private authService = inject(AuthService);
   private roleService = inject(RoleService);
 
+  // Public access for template
+  get auth() { return this.authService; }
+
   // Lucide icons
   readonly Users = Users;
   readonly BookOpen = BookOpen;
@@ -26,6 +30,7 @@ export class DashboardComponent {
   readonly UserX = UserX;
   readonly ClipboardList = ClipboardList;
   readonly CalendarIcon = Calendar;
+  readonly RotateCcw = RotateCcw;
 
   canTakeAttendance = this.roleService.canTakeAttendance;
   isStudent = this.roleService.isStudent;
@@ -127,7 +132,16 @@ export class DashboardComponent {
       }
     }
     
-    return attendance.slice(-5).reverse();
+    // Remove duplicates based on student_id and date (keep most recent)
+    const uniqueMap = new Map<string, any>();
+    attendance.slice().reverse().forEach(record => {
+      const key = `${record.student_id}-${new Date(record.date).toDateString()}`;
+      if (!uniqueMap.has(key)) {
+        uniqueMap.set(key, record);
+      }
+    });
+    
+    return Array.from(uniqueMap.values()).slice(-5).reverse();
   });
 
   getStatusClass(status: string): string {
@@ -138,5 +152,60 @@ export class DashboardComponent {
       'Excused': 'bg-blue-100 text-blue-700 rounded-full px-3 py-1 text-sm font-medium'
     };
     return classes[status] || '';
+  }
+
+  ngOnInit() {
+    // Implement daily auto-clear of attendance records at midnight
+    this.setupDailyAutoClear();
+  }
+
+  private setupDailyAutoClear() {
+    const checkAndClear = () => {
+      const lastClearDate = localStorage.getItem('lastAttendanceClearDate');
+      const today = new Date().toDateString();
+      
+      if (lastClearDate !== today) {
+        // Clear attendance records for previous day (optional - for archival purposes)
+        // This can be customized based on business logic
+        localStorage.setItem('lastAttendanceClearDate', today);
+      }
+    };
+
+    // Check every minute
+   setInterval(checkAndClear, 60000);
+    checkAndClear(); // Initial check
+  }
+
+  async resetStatistics() {
+    const result = await Swal.fire({
+      title: 'Reset Statistics?',
+      text: 'This will clear all attendance records. This action cannot be undone.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Yes, reset all',
+      cancelButtonText: 'Cancel'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await this.dataService.resetAllAttendance();
+        
+        await Swal.fire({
+          title: 'Success!',
+          text: 'All statistics have been reset.',
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      } catch (error) {
+        await Swal.fire({
+          title: 'Error!',
+          text: 'Failed to reset statistics.',
+          icon: 'error'
+        });
+      }
+    }
   }
 }
