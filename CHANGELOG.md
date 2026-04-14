@@ -1,4 +1,4 @@
-# SAMS — Full Session Changelog
+# SAMS
 ### Branch: `deepz-test-edit`
 
 This document covers everything worked on, fixed, added, and improved during this development session — in chronological order.
@@ -15,7 +15,7 @@ This document covers everything worked on, fixed, added, and improved during thi
 
 ## 2. Instructor Feedback Fixes
 
-Based on instructor comments (originally in Cebuano):
+Based on instructor comments:
 
 ### QR Code Flow Correction
 - **Removed** the camera/scanner UI from the instructor's Manual Entry tab — instructors should not be scanning
@@ -42,7 +42,7 @@ Based on instructor comments (originally in Cebuano):
 
 ---
 
-## 3. Bug Fixes (JSON Server Era)
+## 3. Bug Fixes (JSON Server)
 
 ### Delete Not Persisting to Database
 - **Root cause**: All delete and update operations were using custom string IDs (`user_id`, `student_id`, etc.) as the URL parameter — JSON Server requires the numeric `id` field
