@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DataService } from '../../services/data.service';
 import { AuthService } from '../../services/auth.service';
+import { AttendanceNotifyService } from '../../services/attendance-notify.service';
 import { LucideAngularModule, Camera, CheckCircle, AlertCircle, XCircle, Upload } from 'lucide-angular';
 import { BrowserQRCodeReader } from '@zxing/library';
 import Swal from 'sweetalert2';
@@ -25,6 +26,7 @@ export class QrCodeScannerComponent implements OnInit, OnDestroy {
 
   private dataService = inject(DataService);
   private authService = inject(AuthService);
+  private notifyService = inject(AttendanceNotifyService);
   private cdr = inject(ChangeDetectorRef);
 
   readonly CameraIcon = Camera;
@@ -185,7 +187,7 @@ export class QrCodeScannerComponent implements OnInit, OnDestroy {
         this.lastScan.set({ sessionId: qrData, timestamp: new Date(), status: 'duplicate' });
       } else {
         this.lastScan.set({ sessionId: qrData, timestamp: new Date(), status: 'success' });
-        await this.notifyParentAndInstructor(student, subjectId);
+        await this.notifyService.notify(student.student_id, subjectId, 'Present');
       }
 
       setTimeout(() => { if (this.cameraStarted()) this.scanning.set(true); }, 3000);
@@ -194,22 +196,6 @@ export class QrCodeScannerComponent implements OnInit, OnDestroy {
       console.error('QR processing error:', error);
       this.lastScan.set({ sessionId: '', timestamp: new Date(), status: 'error' });
       await Swal.fire('Error', 'Failed to mark attendance. Please try again.', 'error');
-    }
-  }
-
-  private async notifyParentAndInstructor(student: any, subjectId: string) {
-    try {
-      const subject = this.dataService.subjects().find(s => s.subject_id === subjectId);
-      const instructor = this.dataService.instructors().find(i => i.instructor_id === subject?.instructor_id);
-      if (instructor?.user_id) {
-        console.log(`Instructor ${instructor?.full_name} notified: ${student.full_name} marked present`);
-      }
-      const parents = this.dataService.parents().filter(p => p.student_id === student.student_id);
-      parents.forEach(parent => {
-        console.log(`Parent ${parent?.full_name} notified: ${student.full_name} marked present for ${subject?.subject_name}`);
-      });
-    } catch (error) {
-      console.error('Notification error:', error);
     }
   }
 

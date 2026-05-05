@@ -3,7 +3,7 @@ import {
   collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc
 } from 'firebase/firestore';
 import { db } from '../firebase.config';
-import { Student, Subject, Attendance, SubjectEnrollment, Instructor, Parent, User, Department, RegistrationRequest } from '../models/user.model';
+import { Student, Subject, Attendance, SubjectEnrollment, Instructor, Parent, User, Department, RegistrationRequest, AppNotification } from '../models/user.model';
 
 @Injectable({ providedIn: 'root' })
 export class DataService {
@@ -429,6 +429,28 @@ export class DataService {
     if (!docId) throw new Error('RegistrationRequest _docId missing');
     await this.deleteDoc_('registration_requests', docId);
     this.registrationRequests.update(r => r.filter(x => (x as any)._docId !== docId));
+  }
+
+  // ── Notifications ─────────────────────────────────────
+  async addNotification(n: AppNotification) {
+    const saved = await this.addDoc_('notifications', n);
+    return saved;
+  }
+
+  async markNotificationRead(n: AppNotification) {
+    const docId = (n as any)._docId;
+    if (!docId) return;
+    await this.updateDoc_('notifications', docId, { ...n, read: true });
+  }
+
+  async markAllNotificationsRead(userId: string) {
+    const { query, collection: col, where, getDocs, writeBatch, doc } = await import('firebase/firestore');
+    const q = query(col(db, 'notifications'), where('user_id', '==', userId), where('read', '==', false));
+    const snap = await getDocs(q);
+    if (snap.empty) return;
+    const batch = writeBatch(db);
+    snap.docs.forEach(d => batch.update(doc(db, 'notifications', d.id), { read: true }));
+    await batch.commit();
   }
 }
 

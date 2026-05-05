@@ -12,7 +12,6 @@ import {
   updatePassword
 } from 'firebase/auth';
 import { db, auth } from '../firebase.config';
-
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private platformId = inject(PLATFORM_ID);

@@ -5,6 +5,7 @@ import { ActivatedRoute } from '@angular/router';
 import { DataService } from '../../services/data.service';
 import { AuthService } from '../../services/auth.service';
 import { RoleService } from '../../services/role.service';
+import { AttendanceNotifyService } from '../../services/attendance-notify.service';
 import { Attendance } from '../../models/user.model';
 import { LucideAngularModule, Users, QrCode, CheckCircle2, XCircle, AlertCircle, RotateCcw, BookOpen } from 'lucide-angular';
 import Swal from 'sweetalert2';
@@ -23,6 +24,7 @@ export class TakeAttendanceComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private authService = inject(AuthService);
   private roleService = inject(RoleService);
+  private notifyService = inject(AttendanceNotifyService);
   
   // Lucide icons
   readonly Users = Users;
@@ -119,6 +121,7 @@ export class TakeAttendanceComponent implements OnInit {
     const success = await this.dataService.addAttendance(record);
     if (success) {
       this.showMessage(`Marked ${studentName} as ${status}`, 'success');
+      await this.notifyService.notify(studentId, this.selectedSubjectId, status);
     } else {
       this.showMessage('Already marked today', 'error');
     }

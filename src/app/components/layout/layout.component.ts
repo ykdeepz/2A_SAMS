@@ -4,8 +4,9 @@ import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
 import { DataService } from '../../services/data.service';
+import { NotificationService } from '../../services/notification.service';
 import { filter } from 'rxjs/operators';
-import { LucideAngularModule, LayoutDashboard, BookOpen, ClipboardList, BarChart3, UserPlus, Settings, LogOut, ChevronLeft, ChevronRight, Users, Building2, Menu, X } from 'lucide-angular';
+import { LucideAngularModule, LayoutDashboard, BookOpen, ClipboardList, BarChart3, UserPlus, Settings, LogOut, ChevronLeft, ChevronRight, Users, Building2, Menu, X, Bell } from 'lucide-angular';
 
 @Component({
   selector: 'app-layout',
@@ -32,13 +33,16 @@ export class LayoutComponent {
   readonly LogOut = LogOut;
   readonly ChevronLeft = ChevronLeft;
   readonly ChevronRight = ChevronRight;
+  readonly Bell = Bell;
   readonly Menu = Menu;
   readonly X = X;
-  
+
   sidebarCollapsed = signal(false);
   sidebarOpen = signal(false);
   isMobile = signal(false);
+  showNotifications = signal(false);
   currentUser = this.authService.currentUser;
+  notificationService = inject(NotificationService);
 
   constructor() {
     // Listen to route changes to update page title

@@ -127,3 +127,13 @@ export interface RegistrationRequest {
   parent_phone?: string;
   _docId?: string;
 }
+
+export interface AppNotification {
+  notification_id: string;
+  user_id: string;       // recipient's Firebase Auth UID
+  message: string;
+  type: 'attendance';
+  read: boolean;
+  created_at: string;
+  _docId?: string;
+}
