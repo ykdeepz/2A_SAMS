@@ -1,0 +1,96 @@
+<div class="qrgen-layout animate-fade-in">
+
+  <!-- Left: QR Generator -->
+  <div class="qrgen-col">
+    <div class="qrgen-card">
+      <div class="qrgen-card-header">
+        <lucide-icon [img]="QrCodeIcon" [size]="20" class="qrgen-icon"></lucide-icon>
+        <h3 class="qrgen-card-title">Generate QR Code</h3>
+      </div>
+
+      <!-- Subject Info -->
+      <div class="qrgen-subject-info">
+        <p class="qrgen-subject-label">Subject</p>
+        <p class="qrgen-subject-name">{{ subjectLabel() }}</p>
+      </div>
+
+      <!-- Session Duration -->
+      <div class="qrgen-duration">
+        <label class="qrgen-duration-label">Session Duration (minutes)</label>
+        <select [(ngModel)]="sessionDuration" [disabled]="!!qrCodeImage()" class="qrgen-select">
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="15">15</option>
+          <option value="30">30</option>
+          <option value="45">45</option>
+          <option value="60">60</option>
+        </select>
+      </div>
+
+      <!-- QR Code Display -->
+      @if (qrCodeImage()) {
+        <div class="qrgen-qr-display">
+          <div class="qrgen-status-row">
+            <span class="qrgen-status-dot" [class]="sessionStateColorClass()"></span>
+            <span class="qrgen-status-label">{{ sessionStateLabel() }}</span>
+          </div>
+          <img [src]="qrCodeImage()" alt="QR Code" class="qrgen-qr-image">
+          <p class="qrgen-expiry">Active until: {{ sessionExpiryTime() | date:'shortTime' }}</p>
+          <div class="qrgen-actions">
+            <button (click)="downloadQR()" class="qrgen-btn qrgen-btn-green">
+              <lucide-icon [img]="Download" [size]="14"></lucide-icon> Download
+            </button>
+            <button (click)="copyQRToClipboard()" class="qrgen-btn qrgen-btn-blue">
+              <lucide-icon [img]="Copy" [size]="14"></lucide-icon> Copy
+            </button>
+            <button (click)="regenerateQR()" class="qrgen-btn btn-primary-solid">
+              <lucide-icon [img]="QrCodeIcon" [size]="14"></lucide-icon> Regenerate
+            </button>
+            <button (click)="stopSession()" class="qrgen-btn qrgen-btn-red">
+              <lucide-icon [img]="X" [size]="14"></lucide-icon> Stop
+            </button>
+          </div>
+          <div class="qrgen-session-log">
+            <span>Start: {{ sessionLog.start | date:'shortTime' }}</span>
+            <span>End: {{ sessionLog.end | date:'shortTime' }}</span>
+          </div>
+        </div>
+      } @else {
+        <button (click)="generateQRCode()" [disabled]="generatingQR()" class="btn-primary qrgen-generate-btn">
+          {{ generatingQR() ? 'Generating...' : 'Generate QR Code' }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Right: Live Scan Feed -->
+  <div class="qrgen-col">
+    <div class="qrgen-card">
+      <div class="qrgen-card-header">
+        <lucide-icon [img]="UsersIcon" [size]="20" class="qrgen-icon"></lucide-icon>
+        <h3 class="qrgen-card-title">Scanned ({{ liveScans().length }})</h3>
+      </div>
+
+      @if (liveScans().length > 0) {
+        <div class="qrgen-scan-list">
+          @for (record of liveScans(); track record.attendance_id) {
+            <div class="qrgen-scan-item">
+              <div class="qrgen-scan-info">
+                <p class="qrgen-scan-name">{{ record.student_name }}</p>
+                <p class="qrgen-scan-time">{{ record.time }}</p>
+              </div>
+              <span class="qrgen-present-badge">{{ record.status }}</span>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="qrgen-empty">
+          <lucide-icon [img]="UsersIcon" [size]="48" class="qrgen-empty-icon"></lucide-icon>
+          <p class="qrgen-empty-title">No scans yet</p>
+          <p class="qrgen-empty-text">Students who scan the QR code will appear here</p>
+        </div>
+      }
+    </div>
+  </div>
+
+</div>

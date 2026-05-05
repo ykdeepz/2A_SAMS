@@ -1,0 +1,90 @@
+<div class="scanner-page animate-fade-in">
+  <div class="scanner-card">
+    <div class="scanner-header">
+      <div>
+        <h1 class="scanner-title">Mark Attendance via QR Code</h1>
+        <p class="scanner-subtitle">Scan the QR code to mark yourself present</p>
+      </div>
+      <lucide-icon [img]="CameraIcon" [size]="48" class="scanner-header-icon"></lucide-icon>
+    </div>
+
+    @if (!cameraStarted()) {
+      <div class="scanner-start-options">
+        <button (click)="startCamera()" class="btn-primary scanner-start-btn">
+          <lucide-icon [img]="CameraIcon" [size]="20"></lucide-icon>
+          Start Camera & Scan QR Code
+        </button>
+        <label class="scanner-upload-label">
+          <lucide-icon [img]="UploadIcon" [size]="20"></lucide-icon>
+          Upload QR Code Image
+          <input type="file" accept="image/*" class="scanner-file-input" (change)="onFileUpload($event)">
+        </label>
+      </div>
+    } @else {
+      <div class="scanner-active-view">
+        <!-- Camera Stream -->
+        <div class="scanner-video-wrapper">
+          <video #videoElement class="scanner-video" (play)="onVidePlay()"></video>
+          @if (scanning()) {
+            <div class="scanner-overlay">
+              <div class="scanner-spinner"></div>
+              <p class="scanner-scanning-text">Scanning...</p>
+            </div>
+          }
+        </div>
+
+        <!-- Stop Button -->
+        <button (click)="stopCamera()" class="scanner-stop-btn">Stop Scanning</button>
+
+        <!-- Last Scan Result -->
+        @if (lastScan(); as scan) {
+          <div class="scan-result" [class]="'scan-result-' + scan.status">
+            <div class="scan-result-inner">
+              @switch (scan.status) {
+                @case ('success') {
+                  <lucide-icon [img]="CheckIcon" [size]="24" class="scan-result-icon scan-icon-success"></lucide-icon>
+                  <div>
+                    <p class="scan-result-title scan-title-success">Attendance Marked!</p>
+                    <p class="scan-result-text">Scanned at {{ scan.timestamp | date:'medium' }}</p>
+                  </div>
+                }
+                @case ('duplicate') {
+                  <lucide-icon [img]="AlertIcon" [size]="24" class="scan-result-icon scan-icon-duplicate"></lucide-icon>
+                  <div>
+                    <p class="scan-result-title scan-title-duplicate">Already Marked</p>
+                    <p class="scan-result-text">You've already marked attendance for this session</p>
+                  </div>
+                }
+                @case ('error') {
+                  <lucide-icon [img]="ErrorIcon" [size]="24" class="scan-result-icon scan-icon-error"></lucide-icon>
+                  <div>
+                    <p class="scan-result-title scan-title-error">Error</p>
+                    <p class="scan-result-text">Failed to process attendance. Please try again.</p>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Scan History -->
+        @if (scanHistory().length > 0) {
+          <div class="scan-history">
+            <h3 class="scan-history-title">Today's Attendance Records</h3>
+            <div class="scan-history-list">
+              @for (record of scanHistory(); track $index) {
+                <div class="scan-history-item">
+                  <div>
+                    <p class="scan-history-subject">{{ record.subject_name }}</p>
+                    <p class="scan-history-date">{{ record.date | date:'short' }}</p>
+                  </div>
+                  <span class="scan-present-badge">Present</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
