@@ -1,6 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { DataService } from '../../services/data.service';
 import { AuthService } from '../../services/auth.service';
 import { User } from '../../models/user.model';
@@ -18,8 +17,6 @@ import Swal from 'sweetalert2';
 export class AccountsComponent {
   dataService = inject(DataService);
   private authService = inject(AuthService);
-  private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:3000';
 
   // Icons
   readonly UserCircle = UserCircle;
@@ -61,7 +58,9 @@ export class AccountsComponent {
   }
 
   allAccounts = computed(() => {
-    return this.dataService.users().filter(u => u.user_id !== '1'); // Exclude master admin
+    // Exclude the currently logged-in admin from the list
+    const currentUserId = this.authService.currentUser()?.user_id;
+    return this.dataService.users().filter(u => u.role !== 'admin' || u.user_id !== currentUserId);
   });
 
   instructorAccounts = computed(() => {
