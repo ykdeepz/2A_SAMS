@@ -1,17 +1,19 @@
-<div class="flex h-screen bg-slate-50">
+<div class="app-shell">
   <!-- Mobile Overlay -->
   @if (sidebarOpen() && isMobile()) {
-    <div class="fixed inset-0 bg-black bg-opacity-50 z-10 md:hidden" (click)="closeMobileSidebar()"></div>
+    <div class="mobile-overlay" (click)="closeMobileSidebar()"></div>
   }
 
   <!-- Sidebar -->
-  <aside [class]="(sidebarCollapsed() && !isMobile()) ? 'w-20' : (isMobile() && !sidebarOpen()) ? '-translate-x-full' : 'w-64'" 
-         class="themed-sidebar fixed md:relative h-full text-white transition-all duration-300 ease-in-out flex flex-col z-20">
-    <div class="h-16 flex items-center justify-between px-4 border-b border-slate-700">
-      @if (!sidebarCollapsed() && !isMobile()) {
-        <h1 class="text-xl font-bold bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">Attendance</h1>
+  <aside class="sidebar themed-sidebar"
+         [class.sidebar-collapsed]="sidebarCollapsed() && !isMobile()"
+         [class.sidebar-hidden]="isMobile() && !sidebarOpen()">
+
+    <div class="sidebar-top">
+      @if (!sidebarCollapsed() || isMobile()) {
+        <h1 class="sidebar-brand">Attendance</h1>
       }
-      <button (click)="toggleSidebar()" class="p-2 hover:bg-slate-700 rounded-lg transition-colors">
+      <button (click)="toggleSidebar()" class="sidebar-toggle-btn">
         @if (sidebarCollapsed() && !isMobile()) {
           <lucide-icon [img]="ChevronRight" [size]="24"></lucide-icon>
         } @else if (!isMobile()) {
@@ -21,81 +23,71 @@
         }
       </button>
     </div>
-    
-    <nav class="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
+
+    <nav class="sidebar-nav">
       @for (item of menuItems(); track item.path) {
-        <a [routerLink]="item.path" 
+        <a [routerLink]="item.path"
            (click)="closeMobileSidebar()"
            routerLinkActive="sidebar-link-active"
            [routerLinkActiveOptions]="{exact: false}"
-           class="flex items-center px-3 py-3 text-slate-300 hover:bg-slate-700 hover:text-white rounded-lg transition-all duration-200">
+           class="sidebar-link">
           <lucide-icon [img]="getIconComponent(item.icon)" [size]="20"></lucide-icon>
           @if (!sidebarCollapsed() || isMobile()) {
-            <span class="ml-3 font-medium">{{item.label}}</span>
+            <span class="sidebar-link-label">{{item.label}}</span>
           }
         </a>
       }
     </nav>
-    
-    <!-- User Info at Bottom -->
-    <div class="border-t border-slate-700 p-4">
+
+    <div class="sidebar-footer">
       @if (!sidebarCollapsed() || isMobile()) {
-        <div class="flex items-center gap-3 mb-3">
-          <div class="w-10 h-10 rounded-full icon-primary flex items-center justify-center text-white font-semibold flex-shrink-0">
-            {{getUserInitials()}}
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium text-white truncate">{{currentUser()?.email}}</p>
-            <p class="text-xs text-slate-400 capitalize">{{currentUser()?.role}}</p>
+        <div class="sidebar-user">
+          <div class="sidebar-avatar icon-primary">{{getUserInitials()}}</div>
+          <div class="sidebar-user-info">
+            <p class="sidebar-user-email">{{currentUser()?.email}}</p>
+            <p class="sidebar-user-role">{{currentUser()?.role}}</p>
           </div>
         </div>
       }
-      <button (click)="logout()" 
-              [class]="(sidebarCollapsed() && !isMobile()) ? 'w-full p-2' : 'w-full px-4 py-2'"
-              class="flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors">
+      <button (click)="logout()" class="sidebar-logout-btn"
+              [class.icon-only]="sidebarCollapsed() && !isMobile()">
         <lucide-icon [img]="LogOut" [size]="20"></lucide-icon>
         @if (!sidebarCollapsed() || isMobile()) {
-          <span class="text-sm font-medium">Logout</span>
+          <span>Logout</span>
         }
       </button>
     </div>
   </aside>
 
   <!-- Main Content -->
-  <div class="flex-1 flex flex-col overflow-hidden w-full transition-all duration-300 ease-in-out">
-    <!-- Header -->
-    <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 sticky top-0 z-10 shadow-sm">
-      <div class="flex items-center gap-2 md:gap-4">
+  <div class="main-content">
+    <!-- Top Header -->
+    <header class="top-header">
+      <div class="header-left">
         @if (isMobile()) {
-          <button (click)="toggleSidebar()" class="p-2 hover:bg-slate-100 rounded-lg transition-colors md:hidden">
+          <button (click)="toggleSidebar()" class="mobile-menu-btn">
             <lucide-icon [img]="Menu" [size]="24"></lucide-icon>
           </button>
         }
-        <h2 class="text-lg md:text-2xl font-bold text-slate-800">{{getPageTitle()}}</h2>
+        <h2 class="page-title">{{getPageTitle()}}</h2>
         @if (currentUser()?.role === 'parent') {
-          <span class="px-2 md:px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs md:text-sm font-medium">
-            Parent View
-          </span>
+          <span class="parent-badge">Parent View</span>
         }
-      </div>
-      <div class="flex items-center gap-4">
       </div>
     </header>
 
     <!-- Page Content -->
-    <main class="flex-1 overflow-auto p-4 md:p-6 bg-slate-50">
+    <main class="page-content">
       @if (dataService.loading()) {
-        <div class="flex flex-col items-center justify-center h-64 gap-4">
-          <div class="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin" style="border-color: var(--primary); border-top-color: transparent;"></div>
-          <p class="text-slate-500 text-sm font-medium">Loading data...</p>
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p class="loading-text">Loading data...</p>
         </div>
       } @else if (dataService.loadError()) {
-        <div class="flex flex-col items-center justify-center h-64 gap-4 text-center">
-          <p class="text-red-600 font-semibold text-lg">Failed to connect to the database.</p>
-          <p class="text-slate-500 text-sm">Check your internet connection and try refreshing the page.</p>
-          <button (click)="dataService.loadAllData()" class="btn-primary px-6 py-2 rounded-lg font-medium text-sm">
-            Retry
-          </button>
+        <div class="error-state">
+          <p class="error-title">Failed to connect to the database.</p>
+          <p class="error-text">Check your internet connection and try refreshing the page.</p>
+          <button (click)="dataService.loadAllData()" class="btn-primary retry-btn">Retry</button>
         </div>
       } @else {
         <router-outlet></router-outlet>

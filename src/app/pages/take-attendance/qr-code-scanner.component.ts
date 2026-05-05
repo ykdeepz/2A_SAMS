@@ -132,7 +132,6 @@ export class QrCodeScannerComponent implements OnInit, OnDestroy {
   cameraStarted = signal(false);
   scanning = signal(false);
   lastScan = signal<ScanResult | null>(null);
-  scannedSessions = signal<Set<string>>(new Set());
 
   currentUser = this.authService.currentUser;
 
@@ -256,20 +255,28 @@ export class QrCodeScannerComponent implements OnInit, OnDestroy {
         return;
       }
 
-      const sessionId = qrData;
-
-      // Check for duplicate scan
-      if (this.scannedSessions().has(sessionId)) {
-        this.lastScan.set({ sessionId, timestamp: new Date(), status: 'duplicate' });
-        return;
-      }
-
       const user = this.currentUser();
       const student = this.dataService.students().find(s => s.user_id === user?.user_id);
       if (!student) throw new Error('Student not found');
 
       const subject = this.dataService.subjects().find(s => s.subject_id === subjectId);
       if (!subject) throw new Error('Subject not found');
+
+      // Check against the live attendance signal — works across navigations
+      // because the QR generator keeps a Firestore onSnapshot listener running
+      const alreadyMarked = this.dataService.attendance().some(a =>
+        a.student_id === student.student_id &&
+        a.subject_id === subjectId &&
+        new Date(a.date).toDateString() === new Date().toDateString()
+      );
+
+      if (alreadyMarked) {
+        this.lastScan.set({ sessionId: qrData, timestamp: new Date(), status: 'duplicate' });
+        setTimeout(() => {
+          if (this.cameraStarted()) this.scanning.set(true);
+        }, 2000);
+        return;
+      }
 
       const attendanceRecord = {
         attendance_id: 'ATT' + Date.now(),
@@ -284,12 +291,15 @@ export class QrCodeScannerComponent implements OnInit, OnDestroy {
         method: 'QR' as const
       };
 
-      await this.dataService.addAttendance(attendanceRecord);
+      // addAttendance returns false if a duplicate slips through the signal check
+      const success = await this.dataService.addAttendance(attendanceRecord);
 
-      this.scannedSessions().add(sessionId);
-      this.lastScan.set({ sessionId, timestamp: new Date(), status: 'success' });
-
-      await this.notifyParentAndInstructor(student, subjectId);
+      if (!success) {
+        this.lastScan.set({ sessionId: qrData, timestamp: new Date(), status: 'duplicate' });
+      } else {
+        this.lastScan.set({ sessionId: qrData, timestamp: new Date(), status: 'success' });
+        await this.notifyParentAndInstructor(student, subjectId);
+      }
 
       setTimeout(() => {
         if (this.cameraStarted()) this.scanning.set(true);

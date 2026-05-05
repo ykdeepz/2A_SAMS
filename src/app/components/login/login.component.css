@@ -1,4 +1,4 @@
-/* Login Page */
+/* ── Wrapper ────────────────────────────────────────────── */
 .login-wrapper {
   position: relative;
   min-height: 100vh;
@@ -9,7 +9,6 @@
   overflow: hidden;
 }
 
-/* Video Background */
 .login-video-bg {
   position: absolute;
   inset: 0;
@@ -19,7 +18,6 @@
   z-index: 0;
 }
 
-/* Dark overlay so text is readable */
 .login-overlay {
   position: absolute;
   inset: 0;
@@ -27,7 +25,7 @@
   z-index: 1;
 }
 
-/* Glassmorphism Card */
+/* ── Card ───────────────────────────────────────────────── */
 .login-card {
   position: relative;
   z-index: 2;
@@ -42,16 +40,76 @@
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
 }
 
-@media (min-width: 768px) {
-  .login-card {
-    padding: 2.5rem;
-  }
+.signup-card {
+  max-width: 520px;
 }
 
-/* Glass Input */
+/* ── Header ─────────────────────────────────────────────── */
+.login-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.login-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.login-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 0.5rem;
+}
+
+.login-subtitle {
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+/* ── Error ──────────────────────────────────────────────── */
+.login-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.875rem;
+}
+
+/* ── Form ───────────────────────────────────────────────── */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.5rem;
+}
+
 .login-input {
   width: 100%;
-  padding: 0.625rem 0.875rem;
+  padding: 0.75rem 1rem;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 0.5rem;
@@ -59,6 +117,7 @@
   color: white;
   transition: all 0.2s ease;
   outline: none;
+  box-sizing: border-box;
 }
 
 .login-input::placeholder {
@@ -71,14 +130,20 @@
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
 }
 
-@media (min-width: 768px) {
-  .login-input {
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
-  }
+.login-input-padded {
+  padding-right: 3rem;
 }
 
-/* Eye toggle */
+select.login-input option {
+  background: #1e293b;
+  color: white;
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+/* ── Eye toggle ─────────────────────────────────────────── */
 .eye-toggle {
   position: absolute;
   right: 0.75rem;
@@ -96,9 +161,7 @@
   padding: 0;
 }
 
-.eye-toggle:hover {
-  color: rgba(255, 255, 255, 0.9);
-}
+.eye-toggle:hover { color: rgba(255, 255, 255, 0.9); }
 
 .eye-icon-wrap {
   position: relative;
@@ -116,60 +179,166 @@
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-.eye-icon-wrap .icon-eye {
-  opacity: 1;
-  transform: scale(1) rotate(0deg);
+.eye-icon-wrap .icon-eye        { opacity: 1; transform: scale(1) rotate(0deg); }
+.eye-icon-wrap .icon-eye-off    { opacity: 0; transform: scale(0.5) rotate(15deg); }
+.eye-icon-wrap.hidden-pass .icon-eye     { opacity: 0; transform: scale(0.5) rotate(-15deg); }
+.eye-icon-wrap.hidden-pass .icon-eye-off { opacity: 1; transform: scale(1) rotate(0deg); }
+
+/* ── Submit button ──────────────────────────────────────── */
+.login-submit-btn {
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
-.eye-icon-wrap .icon-eye-off {
-  opacity: 0;
-  transform: scale(0.5) rotate(15deg);
+.signup-submit-btn {
+  margin-top: 1.25rem;
 }
 
-.eye-icon-wrap.hidden-pass .icon-eye {
-  opacity: 0;
-  transform: scale(0.5) rotate(-15deg);
+.btn-spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
 }
 
-.eye-icon-wrap.hidden-pass .icon-eye-off {
-  opacity: 1;
-  transform: scale(1) rotate(0deg);
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Footer ─────────────────────────────────────────────── */
+.login-footer {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Sign-up card — wider to fit the form */
-.signup-card {
-  max-width: 520px;
+.login-footer-text {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  margin: 0 0 0.75rem;
 }
 
-/* Scrollable form area on small screens */
+.signup-trigger-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.signup-trigger-btn:hover { background: rgba(255, 255, 255, 0.1); }
+
+/* ── Signup card specifics ──────────────────────────────── */
+.signup-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.back-btn:hover { color: white; }
+
+.signup-note {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0.25rem 0 0;
+}
+
+.signup-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.signup-tab {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  color: rgba(255, 255, 255, 0.6);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.signup-tab:hover { color: rgba(255, 255, 255, 0.85); }
+
+.signup-tab-active {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
 .signup-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   max-height: 55vh;
   overflow-y: auto;
   padding-right: 4px;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.2) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
 
-.signup-scroll::-webkit-scrollbar {
-  width: 4px;
-}
-
+.signup-scroll::-webkit-scrollbar { width: 4px; }
 .signup-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 2px;
 }
 
-/* Label inside signup form */
+.signup-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
 .signup-label {
   display: block;
   font-size: 0.75rem;
   font-weight: 500;
-  color: rgba(255,255,255,0.75);
+  color: rgba(255, 255, 255, 0.75);
   margin-bottom: 0.25rem;
 }
 
-/* Select inherits login-input but needs explicit text color */
-select.login-input option {
-  background: #1e293b;
-  color: white;
+.signup-section-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
 }
+
+.req { color: #f87171; }

@@ -2,7 +2,7 @@ import { Injectable, signal, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { User } from '../models/user.model';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import {
   signInWithEmailAndPassword,
   signOut,
@@ -99,16 +99,12 @@ export class AuthService {
     }
   }
 
-  // Load the Firestore user profile by Firebase Auth UID (stored as user_id)
+  // Load the Firestore user profile by Firebase Auth UID (document ID = UID)
   private async loadProfile(uid: string): Promise<User | null> {
     try {
-      const q = query(collection(db, 'users'), where('user_id', '==', uid));
-      const snap = await getDocs(q);
-      if (snap.empty) return null;
-      const data = snap.docs[0].data() as User;
-      // Never expose password in the session object
-      const { password: _, ...profile } = data as any;
-      return profile as User;
+      const snap = await getDoc(doc(db, 'users', uid));
+      if (!snap.exists()) return null;
+      return snap.data() as User;
     } catch (error) {
       console.error('Failed to load user profile:', error);
       return null;

@@ -1,0 +1,141 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+
+    // Is the request from a signed-in Firebase Auth user?
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Does the signed-in user's UID match the user_id stored in the document?
+    function isOwner(userId) {
+      return isAuth() && request.auth.uid == userId;
+    }
+
+    // Load the caller's Firestore profile to check their role
+    function callerProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Role checks — reads the caller's profile from Firestore
+    function isAdmin() {
+      return isAuth() && callerProfile().role == 'admin';
+    }
+
+    function isInstructor() {
+      return isAuth() && callerProfile().role == 'instructor';
+    }
+
+    function isStudent() {
+      return isAuth() && callerProfile().role == 'student';
+    }
+
+    function isParent() {
+      return isAuth() && callerProfile().role == 'parent';
+    }
+
+    function isAdminOrInstructor() {
+      return isAdmin() || isInstructor();
+    }
+
+    // ── users ──────────────────────────────────────────────────────────────────
+    // Stored with document ID = Firebase Auth UID (user_id field)
+    match /users/{userId} {
+      // Users can read their own profile; admins can read all
+      allow read: if isOwner(userId) || isAdmin();
+
+      // Only admins can create/update/delete user profiles
+      // (account creation goes through the app which uses admin context)
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── departments ────────────────────────────────────────────────────────────
+    // Public read so the signup form can list departments before login
+    match /departments/{deptId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── registration_requests ──────────────────────────────────────────────────
+    // Anyone (even unauthenticated) can submit a request
+    // Only admins can read and update (approve/deny) requests
+    match /registration_requests/{reqId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ── instructors ────────────────────────────────────────────────────────────
+    match /instructors/{instructorId} {
+      // All authenticated users can read instructor profiles (needed for subject display)
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // ── students ───────────────────────────────────────────────────────────────
+    match /students/{studentId} {
+      // Admins and instructors can read all students
+      // Students can read their own record
+      // Parents can read their linked student's record
+      allow read: if isAdminOrInstructor()
+                  || (isStudent() && resource.data.user_id == request.auth.uid)
+                  || (isParent() && exists(/databases/$(database)/documents/parents/$(request.auth.uid))
+                      && get(/databases/$(database)/documents/parents/$(request.auth.uid)).data.student_id == resource.data.student_id);
+      allow write: if isAdmin();
+    }
+
+    // ── parents ────────────────────────────────────────────────────────────────
+    match /parents/{parentId} {
+      // Admins can read all; parents can read their own record
+      allow read: if isAdmin()
+                  || (isParent() && resource.data.user_id == request.auth.uid);
+      allow write: if isAdmin();
+    }
+
+    // ── subjects ───────────────────────────────────────────────────────────────
+    match /subjects/{subjectId} {
+      // All authenticated users can read subjects
+      allow read: if isAuth();
+      // Admins can do anything; instructors can create/update their own subjects
+      allow create: if isAdminOrInstructor();
+      allow update: if isAdmin()
+                    || (isInstructor() && resource.data.instructor_id == request.auth.uid);
+      allow delete: if isAdmin()
+                    || (isInstructor() && resource.data.instructor_id == request.auth.uid);
+    }
+
+    // ── enrollments ────────────────────────────────────────────────────────────
+    match /enrollments/{enrollmentId} {
+      // All authenticated users can read enrollments
+      allow read: if isAuth();
+      // Admins and instructors can enroll/unenroll
+      // Students can unenroll themselves
+      allow create: if isAdminOrInstructor();
+      allow delete: if isAdminOrInstructor()
+                    || (isStudent() && resource.data.student_id == request.auth.uid);
+      allow update: if isAdminOrInstructor();
+    }
+
+    // ── attendance ─────────────────────────────────────────────────────────────
+    match /attendance/{attendanceId} {
+      // Admins and instructors can read all attendance
+      // Students can read their own attendance
+      // Parents can read their child's attendance
+      allow read: if isAdminOrInstructor()
+                  || (isStudent() && resource.data.student_id == request.auth.uid)
+                  || (isParent() && exists(/databases/$(database)/documents/parents/$(request.auth.uid))
+                      && get(/databases/$(database)/documents/parents/$(request.auth.uid)).data.student_id == resource.data.student_id);
+
+      // Instructors and students (QR scan) can create attendance records
+      allow create: if isAdminOrInstructor()
+                    || (isStudent() && request.resource.data.student_id == request.auth.uid);
+
+      // Only admins and instructors can update or delete attendance
+      allow update, delete: if isAdminOrInstructor();
+    }
+
+  }
+}

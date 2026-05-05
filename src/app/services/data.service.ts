@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import {
-  collection, getDocs, addDoc, updateDoc, deleteDoc, doc
+  collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc
 } from 'firebase/firestore';
 import { db } from '../firebase.config';
 import { Student, Subject, Attendance, SubjectEnrollment, Instructor, Parent, User, Department, RegistrationRequest } from '../models/user.model';
@@ -82,45 +82,37 @@ export class DataService {
     catch (e) { console.error(e); throw e; }
   }
 
+  // Users are stored with their Firebase Auth UID as the document ID
   async addUser(user: User) {
-    const saved = await this.addDoc_('users', user);
+    const docRef = doc(db, 'users', user.user_id);
+    await setDoc(docRef, this.clean(user));
+    const saved = { ...user, _docId: user.user_id };
     this.users.update(u => [...u, saved]);
     return saved;
   }
 
   async updateUser(user: User) {
-    const docId = this.findDocId(this.users(), 'user_id', user.user_id);
+    // For users, _docId == user_id
+    const docId = (user as any)._docId || user.user_id;
     await this.updateDoc_('users', docId, user);
     this.users.update(u => u.map(x => x.user_id === user.user_id ? { ...user, _docId: docId } as any : x));
     return user;
   }
 
   async deleteUser(userId: string) {
-    // Cascade delete: Delete all related records
     const user = this.users().find(u => u.user_id === userId);
     if (!user) return false;
-    
-    // Delete student records if user is a student
+
     const student = this.students().find(s => s.user_id === userId);
-    if (student) {
-      await this.deleteStudent(student.student_id);
-    }
-    
-    // Delete instructor records if user is an instructor
+    if (student) await this.deleteStudent(student.student_id);
+
     const instructor = this.instructors().find(i => i.user_id === userId);
-    if (instructor) {
-      await this.deleteInstructor(instructor.instructor_id);
-    }
-    
-    // Delete parent records if user is a parent
+    if (instructor) await this.deleteInstructor(instructor.instructor_id);
+
     const parent = this.parents().find(p => p.user_id === userId);
-    if (parent) {
-      await this.deleteParent(parent.parent_id);
-    }
-    
-    // Delete the user
-    const docId = this.findDocId(this.users(), 'user_id', userId);
-    await this.deleteDoc_('users', docId);
+    if (parent) await this.deleteParent(parent.parent_id);
+
+    await this.deleteDoc_('users', userId);
     this.users.update(u => u.filter(x => x.user_id !== userId));
     return true;
   }
@@ -218,7 +210,24 @@ export class DataService {
     catch (e) { console.error(e); throw e; }
   }
 
-  getAttendance() { return this.attendance(); }
+  async updateAttendance(record: Attendance) {
+    const docId = this.findDocId(this.attendance(), 'attendance_id', record.attendance_id);
+    const recordToSave = {
+      ...record,
+      date: record.date instanceof Date ? record.date.toISOString() : new Date(record.date).toISOString()
+    };
+    await this.updateDoc_('attendance', docId, recordToSave);
+    this.attendance.update(a => a.map(x =>
+      x.attendance_id === record.attendance_id ? { ...record, _docId: docId } as any : x
+    ));
+    return record;
+  }
+
+  async deleteAttendance(attendanceId: string) {
+    const docId = this.findDocId(this.attendance(), 'attendance_id', attendanceId);
+    await this.deleteDoc_('attendance', docId);
+    this.attendance.update(a => a.filter(x => x.attendance_id !== attendanceId));
+  }
 
   async addAttendance(record: Attendance) {
     const exists = this.attendance().some(a =>
@@ -227,8 +236,6 @@ export class DataService {
       new Date(a.date).toDateString() === new Date(record.date).toDateString()
     );
     if (exists) return false;
-    
-    // Convert date to ISO string for consistent storage
     const recordToSave = {
       ...record,
       date: record.date instanceof Date ? record.date.toISOString() : new Date(record.date).toISOString()

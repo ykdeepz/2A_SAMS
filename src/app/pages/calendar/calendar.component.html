@@ -1,50 +1,37 @@
-<div class="space-y-6 animate-fade-in">
-  <!-- Header with Navigation -->
-  <div class="flex items-center justify-between">
+<div class="cal-container animate-fade-in">
+  <!-- Header -->
+  <div class="cal-header">
     <div>
-      <h2 class="text-2xl font-bold text-slate-800">Attendance Calendar</h2>
-      <p class="text-slate-600 mt-1">View attendance records by date</p>
+      <h2 class="cal-title">Attendance Calendar</h2>
+      <p class="cal-subtitle">View attendance records by date</p>
     </div>
-    <div class="flex items-center gap-4 bg-white rounded-lg border border-slate-200 px-4 py-2 shadow-sm">
-      <button (click)="previousMonth()" 
-              class="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-        <lucide-icon [img]="ChevronLeft" [size]="20" class="text-slate-600"></lucide-icon>
+    <div class="cal-nav">
+      <button (click)="previousMonth()" class="cal-nav-btn">
+        <lucide-icon [img]="ChevronLeft" [size]="20"></lucide-icon>
       </button>
-      <span class="text-lg font-semibold text-slate-800 min-w-[180px] text-center">{{currentMonthYear()}}</span>
-      <button (click)="nextMonth()" 
-              class="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-        <lucide-icon [img]="ChevronRight" [size]="20" class="text-slate-600"></lucide-icon>
+      <span class="cal-month-label">{{currentMonthYear()}}</span>
+      <button (click)="nextMonth()" class="cal-nav-btn">
+        <lucide-icon [img]="ChevronRight" [size]="20"></lucide-icon>
       </button>
     </div>
   </div>
 
   <!-- Calendar Layout -->
   <div class="calendar-layout">
-    <!-- Calendar Grid -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="grid grid-cols-7 gap-px bg-slate-200">
+    <!-- Grid -->
+    <div class="cal-grid-wrapper">
+      <div class="cal-grid">
         @for (day of ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']; track day) {
-          <div class="bg-slate-50 px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider">
-            {{day}}
-          </div>
+          <div class="cal-day-header">{{day}}</div>
         }
         @for (day of calendarDays(); track day.date) {
-          <div [class]="'bg-white p-3 min-h-[100px] cursor-pointer hover:bg-slate-50 transition-colors duration-200 ' + 
-                        (day.isCurrentMonth ? '' : 'opacity-40')"
-               (click)="selectDay(day)">
-            <div class="flex flex-col h-full">
-              <div [class]="'text-sm font-medium mb-2 ' + 
-                           (day.isCurrentMonth ? 'text-slate-800' : 'text-slate-400')">
-                {{day.day}}
+          <div class="cal-day" [class.cal-day-other]="!day.isCurrentMonth" (click)="selectDay(day)">
+            <span class="cal-day-num">{{day.day}}</span>
+            @if (day.attendanceCount > 0) {
+              <div class="cal-badge">
+                {{day.attendanceCount}} record{{day.attendanceCount > 1 ? 's' : ''}}
               </div>
-              @if (day.attendanceCount > 0) {
-                <div class="mt-auto">
-                  <div class="bg-amber-100 text-orange-700 rounded px-2 py-1 text-xs font-medium text-center">
-                    {{day.attendanceCount}} record{{day.attendanceCount > 1 ? 's' : ''}}
-                  </div>
-                </div>
-              }
-            </div>
+            }
           </div>
         }
       </div>
@@ -52,33 +39,30 @@
 
     <!-- Selected Day Details -->
     @if (selectedDay()) {
-      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 animate-slide-up calendar-details">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-xl font-bold text-slate-800">{{formatDate(selectedDay()!.date)}}</h3>
-          <button (click)="selectedDay.set(null)" 
-                  class="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-            <lucide-icon [img]="X" [size]="20" class="text-slate-600"></lucide-icon>
+      <div class="cal-details animate-slide-up calendar-details">
+        <div class="cal-details-header">
+          <h3 class="cal-details-title">{{formatDate(selectedDay()!.date)}}</h3>
+          <button (click)="selectedDay.set(null)" class="cal-close-btn">
+            <lucide-icon [img]="X" [size]="20"></lucide-icon>
           </button>
         </div>
-        
+
         @if (selectedDayRecords().length > 0) {
-          <div class="space-y-3">
+          <div class="cal-records">
             @for (record of selectedDayRecords(); track record.attendance_id) {
-              <div class="flex items-center justify-between p-4 border border-slate-100 rounded-lg hover:bg-slate-50 transition-colors duration-200">
-                <div class="flex-1">
-                  <p class="font-semibold text-slate-800">{{record.student_name}}</p>
-                  <p class="text-sm text-slate-500">{{record.subject_name}} • {{record.time}}</p>
+              <div class="cal-record-item">
+                <div class="cal-record-info">
+                  <p class="cal-record-name">{{record.student_name}}</p>
+                  <p class="cal-record-meta">{{record.subject_name}} • {{record.time}}</p>
                 </div>
                 <span [class]="getStatusClass(record.status)">{{record.status}}</span>
               </div>
             }
           </div>
         } @else {
-          <div class="text-center py-8">
-            <div class="w-12 h-12 text-slate-300 mx-auto mb-3 flex items-center justify-center">
-              <lucide-icon [img]="Calendar" [size]="48"></lucide-icon>
-            </div>
-            <p class="text-slate-600">No attendance records for this day</p>
+          <div class="cal-empty">
+            <lucide-icon [img]="Calendar" [size]="40"></lucide-icon>
+            <p>No attendance records for this day</p>
           </div>
         }
       </div>
