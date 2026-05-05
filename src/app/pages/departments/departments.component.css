@@ -658,3 +658,95 @@
 
 
 
+
+/* Clickable card cursor */
+.department-card {
+  cursor: pointer;
+}
+
+/* Instructors modal */
+.instructors-modal {
+  max-width: 560px;
+}
+
+.modal-subtitle {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0.25rem 0 0;
+  position: relative;
+  z-index: 1;
+}
+
+.no-instructors {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: #94a3b8;
+}
+
+.no-instructors p {
+  margin-top: 0.75rem;
+  font-size: 0.9375rem;
+}
+
+.instructors-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.instructor-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  background: #f8fafc;
+  transition: box-shadow 0.2s ease;
+}
+
+.instructor-row:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.instructor-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  color: white;
+  font-weight: 700;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.instructor-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.instructor-name {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.9375rem;
+  margin: 0;
+}
+
+.instructor-meta {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin: 0.125rem 0 0;
+}
+
+.instructor-id-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: #eef2ff;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}

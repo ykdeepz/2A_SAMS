@@ -2,7 +2,6 @@ export interface User {
   id?: number;
   user_id: string;
   email: string;
-  password?: string;
   role: 'admin' | 'instructor' | 'student' | 'parent';
   first_name: string;
   middle_name?: string;
@@ -97,4 +96,34 @@ export interface Department {
   id?: number;
   name: string;
   created_at: string;
+}
+
+export interface RegistrationRequest {
+  id?: number;
+  request_id: string;
+  type: 'instructor' | 'student';
+  status: 'pending' | 'approved' | 'denied';
+  submitted_at: string;
+  reviewed_at?: string;
+  // Instructor fields
+  instructor_id?: string;
+  first_name: string;
+  middle_name?: string;
+  last_name: string;
+  full_name: string;
+  email: string;
+  phone?: string;
+  department?: string;
+  // Student fields
+  student_id?: string;
+  grade_level?: string;
+  section?: string;
+  // Parent fields (for student requests)
+  parent_first_name?: string;
+  parent_middle_name?: string;
+  parent_last_name?: string;
+  parent_full_name?: string;
+  parent_email?: string;
+  parent_phone?: string;
+  _docId?: string;
 }

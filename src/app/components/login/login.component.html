@@ -6,72 +6,231 @@
   <!-- Overlay -->
   <div class="login-overlay"></div>
 
-  <!-- Glass Card -->
-  <div class="login-card animate-fade-in">
-    <div class="text-center mb-6 md:mb-8">
-      <div class="w-12 md:w-16 h-12 md:h-16 icon-primary rounded-lg md:rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-lg">
-        <lucide-icon [img]="CheckCircle2" [size]="32"></lucide-icon>
-      </div>
-      <h1 class="text-2xl md:text-3xl font-bold text-white mb-1 md:mb-2">WELCOME TO SAMS</h1>
-      <p class="text-sm md:text-base text-white/70">Sign in to your account</p>
-    </div>
-
-    @if (error()) {
-      <div class="bg-red-500/20 border border-red-400/40 text-red-200 px-3 md:px-4 py-2 md:py-3 rounded-lg mb-6 flex items-center gap-2 md:gap-3 animate-slide-up text-sm md:text-base">
-        <lucide-icon [img]="AlertCircle" [size]="18"></lucide-icon>
-        <span>{{error()}}</span>
-      </div>
-    }
-
-    <form (ngSubmit)="onSubmit()" class="space-y-4 md:space-y-5">
-      <div>
-        <label class="block text-xs md:text-sm font-medium text-white/80 mb-1 md:mb-2">Email Address</label>
-        <input type="email"
-               [(ngModel)]="email"
-               name="email"
-               required
-               placeholder="Enter your email"
-               class="login-input">
+  <!-- ── SIGN IN CARD ── -->
+  @if (view() === 'login') {
+    <div class="login-card animate-fade-in">
+      <div class="text-center mb-6 md:mb-8">
+        <div class="w-12 md:w-16 h-12 md:h-16 icon-primary rounded-lg md:rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-lg">
+          <lucide-icon [img]="CheckCircle2" [size]="32"></lucide-icon>
+        </div>
+        <h1 class="text-2xl md:text-3xl font-bold text-white mb-1 md:mb-2">WELCOME TO SAMS</h1>
+        <p class="text-sm md:text-base text-white/70">Sign in to your account</p>
       </div>
 
-      <div>
-        <label class="block text-xs md:text-sm font-medium text-white/80 mb-1 md:mb-2">Password</label>
-        <div class="relative">
-          <input [type]="showPassword() ? 'text' : 'password'"
-                 [(ngModel)]="password"
-                 name="password"
+      @if (error()) {
+        <div class="bg-red-500/20 border border-red-400/40 text-red-200 px-3 md:px-4 py-2 md:py-3 rounded-lg mb-6 flex items-center gap-2 md:gap-3 animate-slide-up text-sm md:text-base">
+          <lucide-icon [img]="AlertCircle" [size]="18"></lucide-icon>
+          <span>{{error()}}</span>
+        </div>
+      }
+
+      <form (ngSubmit)="onSubmit()" class="space-y-4 md:space-y-5">
+        <div>
+          <label class="block text-xs md:text-sm font-medium text-white/80 mb-1 md:mb-2">Email Address</label>
+          <input type="email"
+                 [(ngModel)]="email"
+                 name="email"
                  required
-                 placeholder="Enter your password"
-                 class="login-input pr-10 md:pr-12">
-          <button type="button" (click)="showPassword.set(!showPassword())" class="eye-toggle">
-            <span class="eye-icon-wrap" [class.hidden-pass]="!showPassword()">
-              <span class="icon-eye"><lucide-icon [img]="Eye" [size]="18"></lucide-icon></span>
-              <span class="icon-eye-off"><lucide-icon [img]="EyeClosed" [size]="18"></lucide-icon></span>
-            </span>
-          </button>
+                 placeholder="Enter your email"
+                 class="login-input">
+        </div>
+
+        <div>
+          <label class="block text-xs md:text-sm font-medium text-white/80 mb-1 md:mb-2">Password</label>
+          <div class="relative">
+            <input [type]="showPassword() ? 'text' : 'password'"
+                   [(ngModel)]="password"
+                   name="password"
+                   required
+                   placeholder="Enter your password"
+                   class="login-input pr-10 md:pr-12">
+            <button type="button" (click)="showPassword.set(!showPassword())" class="eye-toggle">
+              <span class="eye-icon-wrap" [class.hidden-pass]="!showPassword()">
+                <span class="icon-eye"><lucide-icon [img]="Eye" [size]="18"></lucide-icon></span>
+                <span class="icon-eye-off"><lucide-icon [img]="EyeClosed" [size]="18"></lucide-icon></span>
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit"
+                [disabled]="loading()"
+                class="w-full btn-primary py-2 md:py-3 rounded-lg font-medium shadow-sm flex items-center justify-center gap-2 text-sm md:text-base">
+          @if (loading()) {
+            <div class="w-4 md:w-5 h-4 md:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <span>Signing in...</span>
+          } @else {
+            <span>Sign In</span>
+            <lucide-icon [img]="ArrowRight" [size]="18"></lucide-icon>
+          }
+        </button>
+      </form>
+
+      <div class="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-white/20">
+        <p class="text-xs md:text-sm text-white/70 text-center mb-3">Don't have an account?</p>
+        <button (click)="showSignup()"
+                class="w-full flex items-center justify-center gap-2 py-2 md:py-3 rounded-lg font-medium text-sm md:text-base border border-white/30 text-white/90 hover:bg-white/10 transition-colors duration-200">
+          <lucide-icon [img]="UserPlus" [size]="18"></lucide-icon>
+          Request an Account
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ── SIGN UP CARD ── -->
+  @if (view() === 'signup') {
+    <div class="login-card signup-card animate-fade-in">
+      <!-- Header -->
+      <div class="flex items-center gap-3 mb-5">
+        <button (click)="showLogin()" class="text-white/70 hover:text-white transition-colors">
+          <lucide-icon [img]="ArrowLeft" [size]="20"></lucide-icon>
+        </button>
+        <div>
+          <h1 class="text-xl md:text-2xl font-bold text-white">Request Account</h1>
+          <p class="text-xs text-white/60">Admin will review and approve your request</p>
         </div>
       </div>
 
-      <button type="submit"
-              [disabled]="loading()"
-              class="w-full btn-primary py-2 md:py-3 rounded-lg font-medium shadow-sm flex items-center justify-center gap-2 text-sm md:text-base">
-        @if (loading()) {
-          <div class="w-4 md:w-5 h-4 md:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-          <span>Signing in...</span>
+      <!-- Tabs -->
+      <div class="flex gap-2 mb-5">
+        <button (click)="signupTab.set('instructor')"
+                [class]="'flex-1 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ' +
+                  (signupTab() === 'instructor' ? 'bg-white/20 text-white border border-white/40' : 'text-white/60 hover:text-white/80 border border-transparent')">
+          Instructor
+        </button>
+        <button (click)="signupTab.set('student')"
+                [class]="'flex-1 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ' +
+                  (signupTab() === 'student' ? 'bg-white/20 text-white border border-white/40' : 'text-white/60 hover:text-white/80 border border-transparent')">
+          Student
+        </button>
+      </div>
+
+      @if (signupError()) {
+        <div class="bg-red-500/20 border border-red-400/40 text-red-200 px-3 py-2 rounded-lg mb-4 flex items-center gap-2 text-sm">
+          <lucide-icon [img]="AlertCircle" [size]="16"></lucide-icon>
+          <span>{{signupError()}}</span>
+        </div>
+      }
+
+      <!-- Instructor Form -->
+      @if (signupTab() === 'instructor') {
+        <div class="space-y-3 signup-scroll">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="signup-label">Instructor ID <span class="text-red-400">*</span></label>
+              <input type="text" [(ngModel)]="instForm.instructor_id" placeholder="e.g. INST-001" class="login-input text-sm">
+            </div>
+            <div>
+              <label class="signup-label">Department <span class="text-red-400">*</span></label>
+              <select [(ngModel)]="instForm.department" class="login-input text-sm">
+                <option value="">Select</option>
+                @for (dept of departments(); track dept.id) {
+                  <option [value]="dept.name">{{ dept.name }}</option>
+                }
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="signup-label">First Name <span class="text-red-400">*</span></label>
+              <input type="text" [(ngModel)]="instForm.first_name" placeholder="First name" class="login-input text-sm">
+            </div>
+            <div>
+              <label class="signup-label">Middle Name</label>
+              <input type="text" [(ngModel)]="instForm.middle_name" placeholder="Optional" class="login-input text-sm">
+            </div>
+          </div>
+          <div>
+            <label class="signup-label">Last Name <span class="text-red-400">*</span></label>
+            <input type="text" [(ngModel)]="instForm.last_name" placeholder="Last name" class="login-input text-sm">
+          </div>
+          <div>
+            <label class="signup-label">Email <span class="text-red-400">*</span></label>
+            <input type="email" [(ngModel)]="instForm.email" placeholder="instructor@school.com" class="login-input text-sm">
+          </div>
+          <div>
+            <label class="signup-label">Phone <span class="text-red-400">*</span></label>
+            <input type="tel" [(ngModel)]="instForm.phone" placeholder="Phone number" class="login-input text-sm">
+          </div>
+        </div>
+      }
+
+      <!-- Student Form -->
+      @if (signupTab() === 'student') {
+        <div class="space-y-3 signup-scroll">
+          <p class="text-xs text-white/50 font-semibold uppercase tracking-wide">Student Information</p>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="signup-label">Student ID <span class="text-red-400">*</span></label>
+              <input type="text" [(ngModel)]="stuForm.student_id" placeholder="e.g. STU-001" class="login-input text-sm">
+            </div>
+            <div>
+              <label class="signup-label">Grade Level <span class="text-red-400">*</span></label>
+              <input type="text" [(ngModel)]="stuForm.grade_level" placeholder="e.g. Grade 11" class="login-input text-sm">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="signup-label">First Name <span class="text-red-400">*</span></label>
+              <input type="text" [(ngModel)]="stuForm.first_name" placeholder="First name" class="login-input text-sm">
+            </div>
+            <div>
+              <label class="signup-label">Middle Name</label>
+              <input type="text" [(ngModel)]="stuForm.middle_name" placeholder="Optional" class="login-input text-sm">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="signup-label">Last Name <span class="text-red-400">*</span></label>
+              <input type="text" [(ngModel)]="stuForm.last_name" placeholder="Last name" class="login-input text-sm">
+            </div>
+            <div>
+              <label class="signup-label">Section <span class="text-red-400">*</span></label>
+              <input type="text" [(ngModel)]="stuForm.section" placeholder="e.g. A" class="login-input text-sm">
+            </div>
+          </div>
+          <div>
+            <label class="signup-label">Email <span class="text-red-400">*</span></label>
+            <input type="email" [(ngModel)]="stuForm.email" placeholder="student@school.com" class="login-input text-sm">
+          </div>
+
+          <p class="text-xs text-white/50 font-semibold uppercase tracking-wide pt-2">Parent / Guardian</p>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="signup-label">First Name <span class="text-red-400">*</span></label>
+              <input type="text" [(ngModel)]="parentForm.first_name" placeholder="First name" class="login-input text-sm">
+            </div>
+            <div>
+              <label class="signup-label">Middle Name</label>
+              <input type="text" [(ngModel)]="parentForm.middle_name" placeholder="Optional" class="login-input text-sm">
+            </div>
+          </div>
+          <div>
+            <label class="signup-label">Last Name <span class="text-red-400">*</span></label>
+            <input type="text" [(ngModel)]="parentForm.last_name" placeholder="Last name" class="login-input text-sm">
+          </div>
+          <div>
+            <label class="signup-label">Email <span class="text-red-400">*</span></label>
+            <input type="email" [(ngModel)]="parentForm.email" placeholder="parent@email.com" class="login-input text-sm">
+          </div>
+          <div>
+            <label class="signup-label">Phone <span class="text-red-400">*</span></label>
+            <input type="tel" [(ngModel)]="parentForm.phone" placeholder="Phone number" class="login-input text-sm">
+          </div>
+        </div>
+      }
+
+      <button (click)="submitSignup()"
+              [disabled]="signupLoading() || (signupTab() === 'instructor' ? !isInstructorFormValid() : !isStudentFormValid())"
+              class="w-full btn-primary py-2 md:py-3 rounded-lg font-medium shadow-sm flex items-center justify-center gap-2 text-sm md:text-base mt-5 disabled:opacity-50 disabled:cursor-not-allowed">
+        @if (signupLoading()) {
+          <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          <span>Submitting...</span>
         } @else {
-          <span>Sign In</span>
-          <lucide-icon [img]="ArrowRight" [size]="18"></lucide-icon>
+          <lucide-icon [img]="UserPlus" [size]="18"></lucide-icon>
+          <span>Submit Request</span>
         }
       </button>
-    </form>
-
-    <div class="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-white/20">
-      <div class="p-3 rounded-lg bg-white/10 border border-white/20">
-        <p class="text-xs text-white/70 text-center">
-          <span class="font-semibold text-white/90">Note:</span> Other accounts must be created by the admin.
-          No demo accounts available.
-        </p>
-      </div>
     </div>
-  </div>
+  }
 </div>

@@ -135,3 +135,41 @@
   opacity: 1;
   transform: scale(1) rotate(0deg);
 }
+
+/* Sign-up card — wider to fit the form */
+.signup-card {
+  max-width: 520px;
+}
+
+/* Scrollable form area on small screens */
+.signup-scroll {
+  max-height: 55vh;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.2) transparent;
+}
+
+.signup-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.signup-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2);
+  border-radius: 2px;
+}
+
+/* Label inside signup form */
+.signup-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.75);
+  margin-bottom: 0.25rem;
+}
+
+/* Select inherits login-input but needs explicit text color */
+select.login-input option {
+  background: #1e293b;
+  color: white;
+}

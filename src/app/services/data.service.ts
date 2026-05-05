@@ -3,7 +3,7 @@ import {
   collection, getDocs, addDoc, updateDoc, deleteDoc, doc
 } from 'firebase/firestore';
 import { db } from '../firebase.config';
-import { Student, Subject, Attendance, SubjectEnrollment, Instructor, Parent, User, Department } from '../models/user.model';
+import { Student, Subject, Attendance, SubjectEnrollment, Instructor, Parent, User, Department, RegistrationRequest } from '../models/user.model';
 
 @Injectable({ providedIn: 'root' })
 export class DataService {
@@ -16,6 +16,7 @@ export class DataService {
   parents     = signal<Parent[]>([]);
   users       = signal<User[]>([]);
   departments = signal<Department[]>([]);
+  registrationRequests = signal<RegistrationRequest[]>([]);
   loading     = signal(true);
   loadError   = signal(false);
 
@@ -28,7 +29,7 @@ export class DataService {
       const results = await Promise.allSettled([
         this.loadUsers(), this.loadStudents(), this.loadSubjects(),
         this.loadAttendance(), this.loadEnrollments(), this.loadInstructors(),
-        this.loadParents(), this.loadDepartments()
+        this.loadParents(), this.loadDepartments(), this.loadRegistrationRequests()
       ]);
       const failed = results.filter(r => r.status === 'rejected');
       if (failed.length > 0) {
@@ -394,6 +395,33 @@ export class DataService {
     if (!docId) throw new Error('Department _docId missing');
     await this.deleteDoc_('departments', docId);
     this.departments.update(d => d.filter(x => (x as any)._docId !== docId));
+  }
+
+  // ── Registration Requests ─────────────────────────────────
+  async loadRegistrationRequests() {
+    try { this.registrationRequests.set(await this.getAll<RegistrationRequest>('registration_requests')); }
+    catch (e) { console.error(e); throw e; }
+  }
+
+  async addRegistrationRequest(req: RegistrationRequest) {
+    const saved = await this.addDoc_('registration_requests', req);
+    this.registrationRequests.update(r => [...r, saved]);
+    return saved;
+  }
+
+  async updateRegistrationRequest(req: RegistrationRequest) {
+    const docId = (req as any)._docId;
+    if (!docId) throw new Error('RegistrationRequest _docId missing');
+    await this.updateDoc_('registration_requests', docId, req);
+    this.registrationRequests.update(r => r.map(x => (x as any)._docId === docId ? { ...req, _docId: docId } as any : x));
+    return req;
+  }
+
+  async deleteRegistrationRequest(req: RegistrationRequest) {
+    const docId = (req as any)._docId;
+    if (!docId) throw new Error('RegistrationRequest _docId missing');
+    await this.deleteDoc_('registration_requests', docId);
+    this.registrationRequests.update(r => r.filter(x => (x as any)._docId !== docId));
   }
 }
 

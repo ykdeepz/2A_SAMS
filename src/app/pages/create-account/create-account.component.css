@@ -188,3 +188,122 @@
 
 
 
+
+/* Pending Approvals */
+.pending-container {
+  min-height: 200px;
+}
+
+.empty-pending {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.pending-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pending-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  background: #f8fafc;
+  transition: box-shadow 0.2s ease;
+}
+
+.pending-card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.pending-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.type-badge {
+  display: inline-block;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.type-instructor {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.type-student {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.pending-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.btn-approve {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-approve:hover {
+  background: #059669;
+}
+
+.btn-deny {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-deny:hover {
+  background: #fecaca;
+}
+
+@media (max-width: 640px) {
+  .pending-card {
+    flex-direction: column;
+  }
+
+  .pending-actions {
+    flex-direction: row;
+    width: 100%;
+  }
+
+  .btn-approve,
+  .btn-deny {
+    flex: 1;
+    justify-content: center;
+  }
+}
