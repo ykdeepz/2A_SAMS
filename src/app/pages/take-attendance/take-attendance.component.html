@@ -7,7 +7,7 @@
 
   <!-- Students: skip subject selector, go straight to scanner -->
   @if (isStudent()) {
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+    <div class="qr-scanner-wrapper">
       <app-qr-code-scanner></app-qr-code-scanner>
     </div>
   } @else {

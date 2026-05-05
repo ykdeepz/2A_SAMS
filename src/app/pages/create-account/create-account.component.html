@@ -34,7 +34,7 @@
         <lucide-icon [img]="Clock" [size]="16" class="tab-icon"></lucide-icon>
         <span>Pending Approvals</span>
         @if (pendingRequests().length > 0) {
-          <span class="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full bg-amber-500 text-white">
+          <span class="pending-count-badge">
             {{ pendingRequests().length }}
           </span>
         }
@@ -56,33 +56,33 @@
       <div class="pending-container">
         @if (pendingRequests().length === 0) {
           <div class="empty-pending">
-            <lucide-icon [img]="CheckCircle2" [size]="48" class="text-emerald-400 mx-auto mb-3"></lucide-icon>
-            <p class="text-slate-600 font-medium">No pending requests</p>
-            <p class="text-slate-400 text-sm mt-1">All registration requests have been reviewed.</p>
+            <lucide-icon [img]="CheckCircle2" [size]="48" class="empty-pending-icon"></lucide-icon>
+            <p class="empty-pending-title">No pending requests</p>
+            <p class="empty-pending-text">All registration requests have been reviewed.</p>
           </div>
         } @else {
           <div class="pending-list">
             @for (req of pendingRequests(); track req.request_id) {
               <div class="pending-card">
                 <div class="pending-info">
-                  <div class="flex items-center gap-2 mb-1">
+                  <div class="pending-meta-row">
                     <span [class]="'type-badge ' + (req.type === 'instructor' ? 'type-instructor' : 'type-student')">
                       {{ req.type | titlecase }}
                     </span>
-                    <span class="text-xs text-slate-400">{{ req.submitted_at | date:'mediumDate' }}</span>
+                    <span class="pending-date">{{ req.submitted_at | date:'mediumDate' }}</span>
                   </div>
-                  <p class="font-semibold text-slate-800">{{ req.full_name }}</p>
-                  <p class="text-sm text-slate-500">{{ req.email }}</p>
+                  <p class="pending-name">{{ req.full_name }}</p>
+                  <p class="pending-email">{{ req.email }}</p>
                   @if (req.type === 'instructor') {
-                    <p class="text-xs text-slate-400 mt-1">
+                    <p class="pending-detail">
                       ID: {{ req.instructor_id }} &bull; Dept: {{ req.department }} &bull; Phone: {{ req.phone }}
                     </p>
                   } @else {
-                    <p class="text-xs text-slate-400 mt-1">
+                    <p class="pending-detail">
                       ID: {{ req.student_id }} &bull; {{ req.grade_level }} &bull; Section {{ req.section }}
                     </p>
                     @if (req.parent_full_name) {
-                      <p class="text-xs text-slate-400">
+                      <p class="pending-detail">
                         Parent: {{ req.parent_full_name }} ({{ req.parent_email }})
                       </p>
                     }
