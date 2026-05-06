@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DataService } from '../../services/data.service';
 import { AuthService } from '../../services/auth.service';
-import * as XLSX from 'xlsx';
+import { Workbook } from 'exceljs';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -160,25 +160,36 @@ export class ReportsComponent {
     }
 
     // Create workbook and worksheet
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(excelData);
+    const wb = new Workbook();
+    const ws = wb.addWorksheet('Attendance Report');
 
     // Set column widths
-    ws['!cols'] = [
-      { wch: 30 }, // Student Name
-      { wch: 15 }, // Days Conducted
-      { wch: 15 }, // Days Attended
-      { wch: 12 }  // Percentage
+    ws.columns = [
+      { width: 30 }, // Student Name
+      { width: 15 }, // Days Conducted
+      { width: 15 }, // Days Attended
+      { width: 12 }  // Percentage
     ];
 
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, 'Attendance Report');
+    // Add rows from excelData array
+    for (const row of excelData) {
+      ws.addRow(row);
+    }
 
     // Generate filename
     const filename = `Attendance_Report_${this.selectedMonth}.xlsx`;
 
-    // Save file
-    XLSX.writeFile(wb, filename);
+    // Save file via browser download
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
 
     Swal.fire({
       icon: 'success',

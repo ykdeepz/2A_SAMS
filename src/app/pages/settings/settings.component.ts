@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { DataService } from '../../services/data.service';
+import { User } from '../../models/user.model';
 import { ThemeService, THEMES, Theme } from '../../services/theme.service';
 import { LucideAngularModule, Eye, EyeClosed } from 'lucide-angular';
 
@@ -56,10 +57,8 @@ export class SettingsComponent {
         first_name: user.first_name,
         last_name: user.last_name
       });
-      // Refresh session
-      const { password: _, ...withoutPassword } = updated as any;
-      this.authService.currentUser.set(withoutPassword);
-      localStorage.setItem('currentUser', JSON.stringify(withoutPassword));
+      this.authService.currentUser.set(updated as User);
+      localStorage.setItem('currentUser', JSON.stringify(updated));
       this.showMessage('Profile updated successfully', 'success');
     } catch {
       this.showMessage('Failed to update profile', 'error');
@@ -80,28 +79,16 @@ export class SettingsComponent {
       return;
     }
 
-    const user = this.authService.currentUser();
-    if (!user) return;
+    const result = await this.authService.changePassword(
+      this.passwordForm.current,
+      this.passwordForm.new
+    );
 
-    try {
-      // Reload users from Firestore to get the password field
-      await this.dataService.loadUsers();
-      const dbUser = this.dataService.users().find(u => u.user_id === user.user_id);
-
-      if (!dbUser) {
-        this.showMessage('User not found', 'error');
-        return;
-      }
-      if ((dbUser as any).password !== this.passwordForm.current) {
-        this.showMessage('Current password is incorrect', 'error');
-        return;
-      }
-
-      await this.dataService.updateUser({ ...dbUser, password: this.passwordForm.new });
+    if (result.success) {
       this.passwordForm = { current: '', new: '', confirm: '' };
       this.showMessage('Password changed successfully', 'success');
-    } catch {
-      this.showMessage('Failed to change password', 'error');
+    } else {
+      this.showMessage(result.error || 'Failed to change password', 'error');
     }
   }
 

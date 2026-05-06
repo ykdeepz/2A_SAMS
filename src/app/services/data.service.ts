@@ -3,7 +3,7 @@ import {
   collection, getDocs, addDoc, updateDoc, deleteDoc, doc
 } from 'firebase/firestore';
 import { db } from '../firebase.config';
-import { Student, Subject, Attendance, SubjectEnrollment, Instructor, Parent, User, Department } from '../models/user.model';
+import { Student, Subject, Attendance, SubjectEnrollment, Instructor, Parent, User, Department, RegistrationRequest } from '../models/user.model';
 
 @Injectable({ providedIn: 'root' })
 export class DataService {
@@ -16,6 +16,7 @@ export class DataService {
   parents     = signal<Parent[]>([]);
   users       = signal<User[]>([]);
   departments = signal<Department[]>([]);
+  registrationRequests = signal<RegistrationRequest[]>([]);
   loading     = signal(true);
   loadError   = signal(false);
 
@@ -28,7 +29,7 @@ export class DataService {
       const results = await Promise.allSettled([
         this.loadUsers(), this.loadStudents(), this.loadSubjects(),
         this.loadAttendance(), this.loadEnrollments(), this.loadInstructors(),
-        this.loadParents(), this.loadDepartments()
+        this.loadParents(), this.loadDepartments(), this.loadRegistrationRequests()
       ]);
       const failed = results.filter(r => r.status === 'rejected');
       if (failed.length > 0) {
@@ -95,6 +96,29 @@ export class DataService {
   }
 
   async deleteUser(userId: string) {
+    // Cascade delete: Delete all related records
+    const user = this.users().find(u => u.user_id === userId);
+    if (!user) return false;
+    
+    // Delete student records if user is a student
+    const student = this.students().find(s => s.user_id === userId);
+    if (student) {
+      await this.deleteStudent(student.student_id);
+    }
+    
+    // Delete instructor records if user is an instructor
+    const instructor = this.instructors().find(i => i.user_id === userId);
+    if (instructor) {
+      await this.deleteInstructor(instructor.instructor_id);
+    }
+    
+    // Delete parent records if user is a parent
+    const parent = this.parents().find(p => p.user_id === userId);
+    if (parent) {
+      await this.deleteParent(parent.parent_id);
+    }
+    
+    // Delete the user
     const docId = this.findDocId(this.users(), 'user_id', userId);
     await this.deleteDoc_('users', docId);
     this.users.update(u => u.filter(x => x.user_id !== userId));
@@ -123,6 +147,31 @@ export class DataService {
   }
 
   async deleteStudent(studentId: string) {
+    // Cascade delete: Delete enrollments, attendance, and parents
+    this.enrollments.update(e => e.filter(x => x.student_id !== studentId));
+    const enrollmentsToDelete = this.enrollments().filter(e => e.student_id === studentId);
+    for (const enrollment of enrollmentsToDelete) {
+      if (enrollment._docId) {
+        await this.deleteDoc_('enrollments', enrollment._docId);
+      }
+    }
+    
+    // Delete attendance records
+    this.attendance.update(a => a.filter(x => x.student_id !== studentId));
+    const attendanceToDelete = this.attendance().filter(a => a.student_id === studentId);
+    for (const record of attendanceToDelete) {
+      if (record._docId) {
+        await this.deleteDoc_('attendance', record._docId);
+      }
+    }
+    
+    // Delete related parents
+    const parentsToDelete = this.parents().filter(p => p.student_id === studentId);
+    for (const parent of parentsToDelete) {
+      await this.deleteParent(parent.parent_id);
+    }
+    
+    // Delete the student
     const docId = this.findDocId(this.students(), 'student_id', studentId);
     await this.deleteDoc_('students', docId);
     this.students.update(s => s.filter(x => x.student_id !== studentId));
@@ -157,7 +206,15 @@ export class DataService {
 
   // ── Attendance ────────────────────────────────────────────
   async loadAttendance() {
-    try { this.attendance.set(await this.getAll<Attendance>('attendance')); }
+    try { 
+      const records = await this.getAll<Attendance>('attendance');
+      // Ensure dates are properly converted from Firestore timestamps
+      const fixedRecords = records.map(r => ({
+        ...r,
+        date: r.date instanceof Date ? r.date : new Date(r.date as any)
+      }));
+      this.attendance.set(fixedRecords); 
+    }
     catch (e) { console.error(e); throw e; }
   }
 
@@ -170,8 +227,20 @@ export class DataService {
       new Date(a.date).toDateString() === new Date(record.date).toDateString()
     );
     if (exists) return false;
-    const saved = await this.addDoc_('attendance', record);
-    this.attendance.update(a => [...a, saved]);
+    
+    // Convert date to ISO string for consistent storage
+    const recordToSave = {
+      ...record,
+      date: record.date instanceof Date ? record.date.toISOString() : new Date(record.date).toISOString()
+    };
+    
+    const saved = await this.addDoc_('attendance', recordToSave);
+    // Convert date back to Date object for in-memory storage
+    const fixedSaved = {
+      ...saved,
+      date: new Date(saved.date as any)
+    };
+    this.attendance.update(a => [...a, fixedSaved]);
     return true;
   }
 
@@ -221,6 +290,22 @@ export class DataService {
   }
 
   async deleteInstructor(instructorId: string) {
+    // Cascade delete: Delete subjects, attendance, and enrollments
+    const subjectsToDelete = this.subjects().filter(s => s.instructor_id === instructorId);
+    for (const subject of subjectsToDelete) {
+      await this.deleteSubject(subject.subject_id);
+    }
+    
+    // Delete related attendance records
+    this.attendance.update(a => a.filter(x => x.instructor_id !== instructorId));
+    const attendanceToDelete = this.attendance().filter(a => a.instructor_id === instructorId);
+    for (const record of attendanceToDelete) {
+      if (record._docId) {
+        await this.deleteDoc_('attendance', record._docId);
+      }
+    }
+    
+    // Delete the instructor
     const docId = this.findDocId(this.instructors(), 'instructor_id', instructorId);
     await this.deleteDoc_('instructors', docId);
     this.instructors.update(i => i.filter(x => x.instructor_id !== instructorId));
@@ -253,6 +338,35 @@ export class DataService {
     this.parents.update(p => p.filter(x => x.parent_id !== parentId));
   }
 
+  // ── Clear all attendance for a subject on a specific day ──
+  async clearAttendanceForDay(subjectId: string, date: Date = new Date()) {
+    const dateStr = date.toDateString();
+    const recordsToDelete = this.attendance().filter(a =>
+      a.subject_id === subjectId && new Date(a.date).toDateString() === dateStr
+    );
+    
+    for (const record of recordsToDelete) {
+      if (record._docId) {
+        await this.deleteDoc_('attendance', record._docId);
+      }
+    }
+    
+    this.attendance.update(a => a.filter(x => !(x.subject_id === subjectId && new Date(x.date).toDateString() === dateStr)));
+  }
+
+  // ── Reset all attendance statistics ──
+  async resetAllAttendance() {
+    const recordsToDelete = this.attendance();
+    
+    for (const record of recordsToDelete) {
+      if (record._docId) {
+        await this.deleteDoc_('attendance', record._docId);
+      }
+    }
+    
+    this.attendance.set([]);
+  }
+
   // ── Departments ───────────────────────────────────────────
   async loadDepartments() {
     try { this.departments.set(await this.getAll<Department>('departments')); }
@@ -281,6 +395,33 @@ export class DataService {
     if (!docId) throw new Error('Department _docId missing');
     await this.deleteDoc_('departments', docId);
     this.departments.update(d => d.filter(x => (x as any)._docId !== docId));
+  }
+
+  // ── Registration Requests ─────────────────────────────────
+  async loadRegistrationRequests() {
+    try { this.registrationRequests.set(await this.getAll<RegistrationRequest>('registration_requests')); }
+    catch (e) { console.error(e); throw e; }
+  }
+
+  async addRegistrationRequest(req: RegistrationRequest) {
+    const saved = await this.addDoc_('registration_requests', req);
+    this.registrationRequests.update(r => [...r, saved]);
+    return saved;
+  }
+
+  async updateRegistrationRequest(req: RegistrationRequest) {
+    const docId = (req as any)._docId;
+    if (!docId) throw new Error('RegistrationRequest _docId missing');
+    await this.updateDoc_('registration_requests', docId, req);
+    this.registrationRequests.update(r => r.map(x => (x as any)._docId === docId ? { ...req, _docId: docId } as any : x));
+    return req;
+  }
+
+  async deleteRegistrationRequest(req: RegistrationRequest) {
+    const docId = (req as any)._docId;
+    if (!docId) throw new Error('RegistrationRequest _docId missing');
+    await this.deleteDoc_('registration_requests', docId);
+    this.registrationRequests.update(r => r.filter(x => (x as any)._docId !== docId));
   }
 }
 
