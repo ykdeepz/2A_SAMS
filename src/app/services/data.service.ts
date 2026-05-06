@@ -50,10 +50,13 @@ export class DataService {
     return snap.docs.map(d => ({ ...d.data(), _docId: d.id }) as T);
   }
 
-  // Strip _docId before writing to Firestore
+  // Strip _docId and any undefined values before writing to Firestore
   private clean(data: any): any {
     const { _docId, ...rest } = data;
-    return rest;
+    // Firestore rejects undefined values — remove them entirely
+    return Object.fromEntries(
+      Object.entries(rest).filter(([_, v]) => v !== undefined)
+    );
   }
 
   private async addDoc_<T extends object>(col: string, data: T): Promise<T> {
