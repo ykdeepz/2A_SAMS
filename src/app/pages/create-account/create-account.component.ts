@@ -61,11 +61,11 @@ export class CreateAccountComponent {
         icon: 'success', timer: 2000, showConfirmButton: false
       });
     } catch (error) {
-      await Swal.fire({
-        title: 'Error!',
-        text: error instanceof Error ? error.message : 'Failed to approve request.',
-        icon: 'error'
-      });
+      const msg = error instanceof Error ? error.message : 'Failed to approve request.';
+      const friendlyMsg = msg.includes('email-already-in-use')
+        ? 'This email already has a Firebase Auth account. Please delete it from Firebase Console → Authentication first, then try again.'
+        : msg;
+      await Swal.fire({ title: 'Error!', text: friendlyMsg, icon: 'error' });
     }
   }
 
