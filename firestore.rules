@@ -7,6 +7,7 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Load caller's profile — document ID must equal Firebase Auth UID
     function callerProfile() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
@@ -33,9 +34,12 @@ service cloud.firestore {
 
     // ── users ──────────────────────────────────────────────
     match /users/{userId} {
-      allow read: if request.auth.uid == userId || isAdmin();
-      allow create, update: if isAdmin();
-      allow delete: if isAdmin();
+      allow read: if isAuth() && (request.auth.uid == userId || isAdmin());
+      // Allow any authenticated user to create a user doc (needed when admin
+      // creates accounts via createUserWithEmailAndPassword — the admin's
+      // auth context is used but they're writing a doc for someone else)
+      allow create: if isAuth();
+      allow update, delete: if isAdmin();
     }
 
     // ── departments — public read for signup form ──────────
@@ -53,7 +57,9 @@ service cloud.firestore {
     // ── instructors ────────────────────────────────────────
     match /instructors/{instructorId} {
       allow read: if isAuth();
-      allow write: if isAdmin();
+      // Allow authenticated users to create (admin creating from request)
+      allow create: if isAuth();
+      allow update, delete: if isAdmin();
     }
 
     // ── students ───────────────────────────────────────────
@@ -62,14 +68,16 @@ service cloud.firestore {
                   || (isStudent() && resource.data.user_id == request.auth.uid)
                   || (isParent() && exists(/databases/$(database)/documents/parents/$(request.auth.uid))
                       && get(/databases/$(database)/documents/parents/$(request.auth.uid)).data.student_id == resource.data.student_id);
-      allow write: if isAdmin();
+      allow create: if isAuth();
+      allow update, delete: if isAdmin();
     }
 
     // ── parents ────────────────────────────────────────────
     match /parents/{parentId} {
       allow read: if isAdmin()
                   || (isParent() && resource.data.user_id == request.auth.uid);
-      allow write: if isAdmin();
+      allow create: if isAuth();
+      allow update, delete: if isAdmin();
     }
 
     // ── subjects ───────────────────────────────────────────
