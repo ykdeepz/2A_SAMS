@@ -7,107 +7,44 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Load caller's profile — document ID must equal Firebase Auth UID
-    function callerProfile() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-    }
-
-    function isAdmin() {
-      return isAuth() && callerProfile().role == 'admin';
-    }
-
-    function isInstructor() {
-      return isAuth() && callerProfile().role == 'instructor';
-    }
-
-    function isStudent() {
-      return isAuth() && callerProfile().role == 'student';
-    }
-
-    function isParent() {
-      return isAuth() && callerProfile().role == 'parent';
-    }
-
-    function isAdminOrInstructor() {
-      return isAdmin() || isInstructor();
-    }
-
-    // ── users ──────────────────────────────────────────────
-    match /users/{userId} {
-      allow read: if isAuth() && (request.auth.uid == userId || isAdmin());
-      // Allow any authenticated user to create a user doc (needed when admin
-      // creates accounts via createUserWithEmailAndPassword — the admin's
-      // auth context is used but they're writing a doc for someone else)
-      allow create: if isAuth();
-      allow update, delete: if isAdmin();
-    }
-
     // ── departments — public read for signup form ──────────
     match /departments/{deptId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isAuth();
     }
 
     // ── registration_requests — anyone can submit ──────────
     match /registration_requests/{reqId} {
-      allow create: if true;
-      allow read, update, delete: if isAdmin();
+      allow read, write: if true;
     }
 
-    // ── instructors ────────────────────────────────────────
-    match /instructors/{instructorId} {
-      allow read: if isAuth();
-      // Allow authenticated users to create (admin creating from request)
-      allow create: if isAuth();
-      allow update, delete: if isAdmin();
+    // ── All other collections — any authenticated user ─────
+    match /users/{docId} {
+      allow read, write: if isAuth();
     }
 
-    // ── students ───────────────────────────────────────────
-    match /students/{studentId} {
-      allow read: if isAdminOrInstructor()
-                  || (isStudent() && resource.data.user_id == request.auth.uid)
-                  || (isParent() && exists(/databases/$(database)/documents/parents/$(request.auth.uid))
-                      && get(/databases/$(database)/documents/parents/$(request.auth.uid)).data.student_id == resource.data.student_id);
-      allow create: if isAuth();
-      allow update, delete: if isAdmin();
+    match /instructors/{docId} {
+      allow read, write: if isAuth();
     }
 
-    // ── parents ────────────────────────────────────────────
-    match /parents/{parentId} {
-      allow read: if isAdmin()
-                  || (isParent() && resource.data.user_id == request.auth.uid);
-      allow create: if isAuth();
-      allow update, delete: if isAdmin();
+    match /students/{docId} {
+      allow read, write: if isAuth();
     }
 
-    // ── subjects ───────────────────────────────────────────
-    match /subjects/{subjectId} {
-      allow read: if isAuth();
-      allow create: if isAdminOrInstructor();
-      allow update: if isAdmin()
-                    || (isInstructor() && resource.data.instructor_id == request.auth.uid);
-      allow delete: if isAdmin()
-                    || (isInstructor() && resource.data.instructor_id == request.auth.uid);
+    match /parents/{docId} {
+      allow read, write: if isAuth();
     }
 
-    // ── enrollments ────────────────────────────────────────
-    match /enrollments/{enrollmentId} {
-      allow read: if isAuth();
-      allow create: if isAdminOrInstructor();
-      allow delete: if isAdminOrInstructor()
-                    || (isStudent() && resource.data.student_id == request.auth.uid);
-      allow update: if isAdminOrInstructor();
+    match /subjects/{docId} {
+      allow read, write: if isAuth();
     }
 
-    // ── attendance ─────────────────────────────────────────
-    match /attendance/{attendanceId} {
-      allow read: if isAdminOrInstructor()
-                  || (isStudent() && resource.data.student_id == request.auth.uid)
-                  || (isParent() && exists(/databases/$(database)/documents/parents/$(request.auth.uid))
-                      && get(/databases/$(database)/documents/parents/$(request.auth.uid)).data.student_id == resource.data.student_id);
-      allow create: if isAdminOrInstructor()
-                    || (isStudent() && request.resource.data.student_id == request.auth.uid);
-      allow update, delete: if isAdminOrInstructor();
+    match /enrollments/{docId} {
+      allow read, write: if isAuth();
+    }
+
+    match /attendance/{docId} {
+      allow read, write: if isAuth();
     }
 
   }
