@@ -2,107 +2,62 @@
   <!-- Header -->
   <div class="page-header">
     <div class="header-content">
-      <h1 class="page-title">Create Account</h1>
-      <p class="page-subtitle">Manage user accounts for the system</p>
+      <h1 class="page-title">Account Requests</h1>
+      <p class="page-subtitle">Review and manage account registration requests</p>
     </div>
-  </div>
-
-  <!-- Tabs -->
-  <div class="tabs-container">
-    @if (canCreateInstructor()) {
-      <button
-        [class]="'tab ' + (activeTab() === 'instructor' ? 'tab-active' : 'tab-inactive')"
-        (click)="setActiveTab('instructor')">
-        <lucide-icon [img]="UserCircle" [size]="16" class="tab-icon"></lucide-icon>
-        <span>Instructor</span>
-      </button>
-    }
-
-    @if (canCreateStudent()) {
-      <button
-        [class]="'tab ' + (activeTab() === 'student' ? 'tab-active' : 'tab-inactive')"
-        (click)="setActiveTab('student')">
-        <lucide-icon [img]="GraduationCap" [size]="16" class="tab-icon"></lucide-icon>
-        <span>Student</span>
-      </button>
-    }
-
-    @if (canCreateInstructor()) {
-      <button
-        [class]="'tab ' + (activeTab() === 'pending' ? 'tab-active' : 'tab-inactive')"
-        (click)="setActiveTab('pending')">
-        <lucide-icon [img]="Clock" [size]="16" class="tab-icon"></lucide-icon>
-        <span>Pending Approvals</span>
-        @if (pendingRequests().length > 0) {
-          <span class="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full bg-amber-500 text-white">
-            {{ pendingRequests().length }}
-          </span>
-        }
-      </button>
-    }
   </div>
 
   <!-- Form Card -->
   <div class="form-card">
-    @if (activeTab() === 'instructor' && canCreateInstructor()) {
-      <app-instructor-form (submitForm)="onInstructorSubmit($event)"></app-instructor-form>
-    }
-
-    @if (activeTab() === 'student' && canCreateStudent()) {
-      <app-student-form (submitForm)="onStudentSubmit($event)"></app-student-form>
-    }
-
-    @if (activeTab() === 'pending' && canCreateInstructor()) {
-      <div class="pending-container">
-        @if (pendingRequests().length === 0) {
-          <div class="empty-pending">
-            <lucide-icon [img]="CheckCircle2" [size]="48" class="text-emerald-400 mx-auto mb-3"></lucide-icon>
-            <p class="text-slate-600 font-medium">No pending requests</p>
-            <p class="text-slate-400 text-sm mt-1">All registration requests have been reviewed.</p>
-          </div>
-        } @else {
-          <div class="pending-list">
-            @for (req of pendingRequests(); track req.request_id) {
-              <div class="pending-card">
-                <div class="pending-info">
-                  <div class="flex items-center gap-2 mb-1">
-                    <span [class]="'type-badge ' + (req.type === 'instructor' ? 'type-instructor' : 'type-student')">
-                      {{ req.type | titlecase }}
-                    </span>
-                    <span class="text-xs text-slate-400">{{ req.submitted_at | date:'mediumDate' }}</span>
-                  </div>
-                  <p class="font-semibold text-slate-800">{{ req.full_name }}</p>
-                  <p class="text-sm text-slate-500">{{ req.email }}</p>
-                  @if (req.type === 'instructor') {
-                    <p class="text-xs text-slate-400 mt-1">
-                      ID: {{ req.instructor_id }} &bull; Dept: {{ req.department }} &bull; Phone: {{ req.phone }}
+    <div class="pending-container">
+      @if (pendingRequests().length === 0) {
+        <div class="empty-pending">
+          <lucide-icon [img]="CheckCircle2" [size]="48" class="empty-pending-icon"></lucide-icon>
+          <p class="empty-pending-title">No pending requests</p>
+          <p class="empty-pending-text">All registration requests have been reviewed.</p>
+        </div>
+      } @else {
+        <div class="pending-list">
+          @for (req of pendingRequests(); track req.request_id) {
+            <div class="pending-card">
+              <div class="pending-info">
+                <div class="pending-meta-row">
+                  <span [class]="'type-badge ' + (req.type === 'instructor' ? 'type-instructor' : 'type-student')">
+                    {{ req.type | titlecase }}
+                  </span>
+                  <span class="pending-date">{{ req.submitted_at | date:'mediumDate' }}</span>
+                </div>
+                <p class="pending-name">{{ req.full_name }}</p>
+                <p class="pending-email">{{ req.email }}</p>
+                @if (req.type === 'instructor') {
+                  <p class="pending-detail">
+                    ID: {{ req.instructor_id }} &bull; Dept: {{ req.department }} &bull; Phone: {{ req.phone }}
+                  </p>
+                } @else {
+                  <p class="pending-detail">
+                    ID: {{ req.student_id }} &bull; {{ req.grade_level }} &bull; Section {{ req.section }}
+                  </p>
+                  @if (req.parent_full_name) {
+                    <p class="pending-detail">
+                      Parent: {{ req.parent_full_name }} ({{ req.parent_email }})
                     </p>
-                  } @else {
-                    <p class="text-xs text-slate-400 mt-1">
-                      ID: {{ req.student_id }} &bull; {{ req.grade_level }} &bull; Section {{ req.section }}
-                    </p>
-                    @if (req.parent_full_name) {
-                      <p class="text-xs text-slate-400">
-                        Parent: {{ req.parent_full_name }} ({{ req.parent_email }})
-                      </p>
-                    }
                   }
-                </div>
-                <div class="pending-actions">
-                  <button (click)="approveRequest(req)" class="btn-approve" title="Approve">
-                    <lucide-icon [img]="Check" [size]="18"></lucide-icon>
-                    Approve
-                  </button>
-                  <button (click)="denyRequest(req)" class="btn-deny" title="Deny">
-                    <lucide-icon [img]="XCircle" [size]="18"></lucide-icon>
-                    Deny
-                  </button>
-                </div>
+                }
               </div>
-            }
-          </div>
-        }
-      </div>
-    }
+              <div class="pending-actions">
+                <button (click)="approveRequest(req)" class="btn-approve" title="Approve">
+                  <lucide-icon [img]="Check" [size]="18"></lucide-icon>
+                  Approve
+                </button>
+                <button (click)="denyRequest(req)" class="btn-deny" title="Deny">
+                  <lucide-icon [img]="XCircle" [size]="18"></lucide-icon>
+                  Deny
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
   </div>
 </div>

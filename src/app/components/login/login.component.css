@@ -12,9 +12,14 @@
 /* Video Background */
 .login-video-bg {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  top: 50%;
+  left: 50%;
+  /* Rotate 90° to flip from vertical to horizontal orientation */
+  transform: translate(-50%, -50%) rotate(90deg);
+  /* After rotation, the video's width becomes the screen height and vice versa.
+     Set both to 100vmax so it always covers the full viewport regardless of aspect ratio */
+  width: 100vmax;
+  height: 100vmax;
   object-fit: cover;
   z-index: 0;
 }
