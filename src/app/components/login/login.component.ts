@@ -221,7 +221,8 @@ export class LoginComponent {
       this.view.set('login');
 
     } catch (error) {
-      this.signupError.set('Failed to submit request. Please try again.');
+      console.error('Signup submission error:', error);
+      this.signupError.set(error instanceof Error ? error.message : 'Failed to submit request. Please try again.');
     } finally {
       this.signupLoading.set(false);
     }

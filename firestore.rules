@@ -1,0 +1,106 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function callerProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return isAuth() && callerProfile().role == 'admin';
+    }
+
+    function isInstructor() {
+      return isAuth() && callerProfile().role == 'instructor';
+    }
+
+    function isStudent() {
+      return isAuth() && callerProfile().role == 'student';
+    }
+
+    function isParent() {
+      return isAuth() && callerProfile().role == 'parent';
+    }
+
+    function isAdminOrInstructor() {
+      return isAdmin() || isInstructor();
+    }
+
+    // ── users ──────────────────────────────────────────────
+    match /users/{userId} {
+      allow read: if request.auth.uid == userId || isAdmin();
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── departments — public read for signup form ──────────
+    match /departments/{deptId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── registration_requests — anyone can submit ──────────
+    match /registration_requests/{reqId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ── instructors ────────────────────────────────────────
+    match /instructors/{instructorId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // ── students ───────────────────────────────────────────
+    match /students/{studentId} {
+      allow read: if isAdminOrInstructor()
+                  || (isStudent() && resource.data.user_id == request.auth.uid)
+                  || (isParent() && exists(/databases/$(database)/documents/parents/$(request.auth.uid))
+                      && get(/databases/$(database)/documents/parents/$(request.auth.uid)).data.student_id == resource.data.student_id);
+      allow write: if isAdmin();
+    }
+
+    // ── parents ────────────────────────────────────────────
+    match /parents/{parentId} {
+      allow read: if isAdmin()
+                  || (isParent() && resource.data.user_id == request.auth.uid);
+      allow write: if isAdmin();
+    }
+
+    // ── subjects ───────────────────────────────────────────
+    match /subjects/{subjectId} {
+      allow read: if isAuth();
+      allow create: if isAdminOrInstructor();
+      allow update: if isAdmin()
+                    || (isInstructor() && resource.data.instructor_id == request.auth.uid);
+      allow delete: if isAdmin()
+                    || (isInstructor() && resource.data.instructor_id == request.auth.uid);
+    }
+
+    // ── enrollments ────────────────────────────────────────
+    match /enrollments/{enrollmentId} {
+      allow read: if isAuth();
+      allow create: if isAdminOrInstructor();
+      allow delete: if isAdminOrInstructor()
+                    || (isStudent() && resource.data.student_id == request.auth.uid);
+      allow update: if isAdminOrInstructor();
+    }
+
+    // ── attendance ─────────────────────────────────────────
+    match /attendance/{attendanceId} {
+      allow read: if isAdminOrInstructor()
+                  || (isStudent() && resource.data.student_id == request.auth.uid)
+                  || (isParent() && exists(/databases/$(database)/documents/parents/$(request.auth.uid))
+                      && get(/databases/$(database)/documents/parents/$(request.auth.uid)).data.student_id == resource.data.student_id);
+      allow create: if isAdminOrInstructor()
+                    || (isStudent() && request.resource.data.student_id == request.auth.uid);
+      allow update, delete: if isAdminOrInstructor();
+    }
+
+  }
+}
