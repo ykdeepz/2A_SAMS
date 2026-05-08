@@ -57,17 +57,25 @@ export class ReportsComponent {
 
   statusStats = computed(() => {
     const records = this.filteredRecords();
-    const total = records.length || 1;
+    const total = records.length;
+    if (total === 0) {
+      return [
+        { label: 'Present', value: 0, percentage: 0, color: '#10b981' },
+        { label: 'Late',    value: 0, percentage: 0, color: '#f59e0b' },
+        { label: 'Absent',  value: 0, percentage: 0, color: '#ef4444' },
+        { label: 'Excused', value: 0, percentage: 0, color: '#3b82f6' }
+      ];
+    }
 
     const present = records.filter(r => r.status === 'Present').length;
-    const late = records.filter(r => r.status === 'Late').length;
-    const absent = records.filter(r => r.status === 'Absent').length;
+    const late    = records.filter(r => r.status === 'Late').length;
+    const absent  = records.filter(r => r.status === 'Absent').length;
     const excused = records.filter(r => r.status === 'Excused').length;
 
     return [
       { label: 'Present', value: present, percentage: Math.round((present / total) * 100), color: '#10b981' },
-      { label: 'Late', value: late, percentage: Math.round((late / total) * 100), color: '#f59e0b' },
-      { label: 'Absent', value: absent, percentage: Math.round((absent / total) * 100), color: '#ef4444' },
+      { label: 'Late',    value: late,    percentage: Math.round((late    / total) * 100), color: '#f59e0b' },
+      { label: 'Absent',  value: absent,  percentage: Math.round((absent  / total) * 100), color: '#ef4444' },
       { label: 'Excused', value: excused, percentage: Math.round((excused / total) * 100), color: '#3b82f6' }
     ];
   });
@@ -98,6 +106,11 @@ export class ReportsComponent {
       return recordDate >= startDate && recordDate <= endDate;
     });
 
+    // If a subject filter is active, apply it to the export too
+    if (this.filterSubject) {
+      attendanceRecords = attendanceRecords.filter(r => r.subject_id === this.filterSubject);
+    }
+
     if (attendanceRecords.length === 0) {
       Swal.fire({
         icon: 'info',
@@ -113,11 +126,14 @@ export class ReportsComponent {
     const studentIds = [...new Set(attendanceRecords.map(r => r.student_id))];
     const students = this.dataService.students().filter(s => studentIds.includes(s.student_id));
 
-    // Get unique dates when attendance was taken (class days)
-    const classDays = [...new Set(attendanceRecords.map(r => {
+    // Get unique class days across ALL records for the period (not per-student).
+    // A student who was absent has no record for that day, so we must derive
+    // class days from the full record set, not from each student's own records.
+    const allClassDays = [...new Set(attendanceRecords.map(r => {
       const date = new Date(r.date);
       return date.toISOString().split('T')[0];
     }))].sort();
+    const totalClassDays = allClassDays.length;
 
     // Prepare data for Excel
     const excelData: any[] = [];
@@ -133,27 +149,19 @@ export class ReportsComponent {
     // Calculate attendance for each student
     for (const student of students) {
       const studentRecords = attendanceRecords.filter(r => r.student_id === student.student_id);
-      
-      // Days conducted = unique dates for this student's records
-      const studentClassDays = [...new Set(studentRecords.map(r => {
-        const date = new Date(r.date);
-        return date.toISOString().split('T')[0];
-      }))];
-      
-      const daysConducted = studentClassDays.length;
-      
-      // Days attended = Present or Late status
-      const daysAttended = studentRecords.filter(r => 
+
+      // Days attended = Present or Late
+      const daysAttended = studentRecords.filter(r =>
         r.status === 'Present' || r.status === 'Late'
       ).length;
-      
-      const percentage = daysConducted > 0 
-        ? ((daysAttended / daysConducted) * 100).toFixed(2) + '%'
+
+      const percentage = totalClassDays > 0
+        ? ((daysAttended / totalClassDays) * 100).toFixed(2) + '%'
         : '0%';
 
       excelData.push([
         student.full_name,
-        daysConducted,
+        totalClassDays,
         daysAttended,
         percentage
       ]);

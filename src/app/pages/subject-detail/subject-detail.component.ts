@@ -70,7 +70,7 @@ export class SubjectDetailComponent {
     return this.dataService.students().filter(s => !enrolledIds.includes(s.student_id));
   });
 
-  enrollStudent(student: any) {
+  async enrollStudent(student: any) {
     const subject = this.subject();
     if (!subject) return;
 
@@ -81,16 +81,23 @@ export class SubjectDetailComponent {
       enrolled_date: new Date()
     };
 
-    this.dataService.enrollStudent(enrollment);
-    this.showEnrollModal.set(false);
-    
-    Swal.fire({
-      icon: 'success',
-      title: 'Student Enrolled!',
-      text: `${student.full_name} has been enrolled in ${subject.subject_name}`,
-      timer: 2000,
-      showConfirmButton: false
-    });
+    try {
+      await this.dataService.enrollStudent(enrollment);
+      this.showEnrollModal.set(false);
+      Swal.fire({
+        icon: 'success',
+        title: 'Student Enrolled!',
+        text: `${student.full_name} has been enrolled in ${subject.subject_name}`,
+        timer: 2000,
+        showConfirmButton: false
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to enroll student. Please try again.'
+      });
+    }
   }
 
   async unenroll(enrollmentId: string) {
@@ -106,14 +113,22 @@ export class SubjectDetailComponent {
     });
 
     if (result.isConfirmed) {
-      this.dataService.unenrollStudent(enrollmentId);
-      Swal.fire({
-        icon: 'success',
-        title: 'Unenrolled!',
-        text: 'Student has been unenrolled from the subject',
-        timer: 2000,
-        showConfirmButton: false
-      });
+      try {
+        await this.dataService.unenrollStudent(enrollmentId);
+        Swal.fire({
+          icon: 'success',
+          title: 'Unenrolled!',
+          text: 'Student has been unenrolled from the subject',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to unenroll student. Please try again.'
+        });
+      }
     }
   }
 

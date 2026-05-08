@@ -1,8 +1,9 @@
 import { Injectable, signal } from '@angular/core';
 import {
-  collection, getDocs, addDoc, updateDoc, deleteDoc, doc
+  collection, getDocs, addDoc, setDoc, updateDoc, deleteDoc, doc
 } from 'firebase/firestore';
-import { db } from '../firebase.config';
+import { onAuthStateChanged } from 'firebase/auth';
+import { db, auth } from '../firebase.config';
 import { Student, Subject, Attendance, SubjectEnrollment, Instructor, Parent, User, Department, RegistrationRequest } from '../models/user.model';
 
 @Injectable({ providedIn: 'root' })
@@ -20,28 +21,108 @@ export class DataService {
   loading     = signal(true);
   loadError   = signal(false);
 
-  constructor() { this.loadAllData(); }
+  constructor() {
+    // Wait for Firebase Auth to restore the session before loading Firestore data.
+    // Loading immediately in the constructor fires before the auth token is ready,
+    // causing every read to be rejected with "Missing or insufficient permissions".
+    // Only departments is publicly readable (allow read: if true), so load it
+    // immediately for the signup form dropdown; everything else waits for auth.
+    this.loadDepartments().catch(() => {});
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        this.loadAllData();
+      } else {
+        // Signed out — clear all protected data from memory
+        this.students.set([]);
+        this.subjects.set([]);
+        this.attendance.set([]);
+        this.enrollments.set([]);
+        this.instructors.set([]);
+        this.parents.set([]);
+        this.users.set([]);
+        this.registrationRequests.set([]);
+        this.loading.set(false);
+        this.loadError.set(false);
+      }
+    });
+  }
 
   async loadAllData() {
     this.loading.set(true);
     this.loadError.set(false);
     try {
+      // Load collections available to all authenticated users
       const results = await Promise.allSettled([
         this.loadUsers(), this.loadStudents(), this.loadSubjects(),
         this.loadAttendance(), this.loadEnrollments(), this.loadInstructors(),
-        this.loadParents(), this.loadDepartments(), this.loadRegistrationRequests()
+        this.loadParents(), this.loadDepartments()
       ]);
-      const failed = results.filter(r => r.status === 'rejected');
-      if (failed.length > 0) {
-        console.error('Some collections failed to load:', failed);
+
+      // Check for genuine failures (not permission-denied, which just means
+      // the current user's role doesn't have access to that collection)
+      const genuineFailed = results.filter(r => {
+        if (r.status !== 'rejected') return false;
+        const code = (r.reason as any)?.code;
+        return code !== 'permission-denied';
+      });
+
+      if (genuineFailed.length > 0) {
+        console.error('Some collections failed to load:', genuineFailed);
         this.loadError.set(true);
       }
+
+      // Load registration_requests separately — only admins can read these,
+      // so a permission-denied here is expected for non-admin users
+      await this.loadRegistrationRequests().catch(e => {
+        if (e?.code !== 'permission-denied') {
+          console.error('Failed to load registration requests:', e);
+        }
+      });
+
+      // Fix any user documents whose Firestore doc ID doesn't match their
+      // user_id (Auth UID). This happens for accounts created before the
+      // setDoc fix. Runs silently — permission-denied just means the current
+      // user isn't admin, which is fine.
+      this.migrateUserDocIds().catch(() => {});
+
     } catch (e) {
       console.error('Failed to load data:', e);
       this.loadError.set(true);
     } finally {
       this.loading.set(false);
     }
+  }
+
+  // ── One-time migration: re-key user docs so doc ID == user_id (Auth UID) ──
+  // Safe to run repeatedly — skips docs that are already correct.
+  // Checks localStorage so it only runs once per browser after completion.
+  async migrateUserDocIds() {
+    if (localStorage.getItem('userDocMigrationDone') === 'true') return;
+
+    const snap = await getDocs(collection(db, 'users'));
+    let migrated = 0;
+    for (const docSnap of snap.docs) {
+      const data = docSnap.data() as User;
+      const docId = docSnap.id;
+      const userId = data.user_id;
+      if (!userId || docId === userId) continue;
+      try {
+        await setDoc(doc(db, 'users', userId), { ...data });
+        await deleteDoc(doc(db, 'users', docId));
+        migrated++;
+      } catch (e) {
+        // Skip docs we don't have permission for
+      }
+    }
+
+    if (migrated > 0) {
+      console.log(`User doc migration complete: ${migrated} doc(s) fixed.`);
+      await this.loadUsers().catch(() => {});
+    }
+
+    // Mark done so it never runs again on this browser
+    localStorage.setItem('userDocMigrationDone', 'true');
   }
 
   // ── Helpers ──────────────────────────────────────────────
@@ -62,6 +143,12 @@ export class DataService {
   private async addDoc_<T extends object>(col: string, data: T): Promise<T> {
     const ref = await addDoc(collection(db, col), this.clean(data));
     return { ...data, _docId: ref.id };
+  }
+
+  // Write a document with a specific ID (used for users so doc ID == Auth UID)
+  private async setDoc_<T extends object>(col: string, docId: string, data: T): Promise<T> {
+    await setDoc(doc(db, col, docId), this.clean(data));
+    return { ...data, _docId: docId };
   }
 
   private async updateDoc_(col: string, docId: string, data: object) {
@@ -86,7 +173,9 @@ export class DataService {
   }
 
   async addUser(user: User) {
-    const saved = await this.addDoc_('users', user);
+    // Use the Auth UID as the Firestore document ID so that
+    // request.auth.uid == userId in security rules works correctly.
+    const saved = await this.setDoc_('users', user.user_id, user);
     this.users.update(u => [...u, saved]);
     return saved;
   }
@@ -150,30 +239,32 @@ export class DataService {
   }
 
   async deleteStudent(studentId: string) {
-    // Cascade delete: Delete enrollments, attendance, and parents
-    this.enrollments.update(e => e.filter(x => x.student_id !== studentId));
+    // Collect records BEFORE updating signals, otherwise the filtered arrays will be empty
     const enrollmentsToDelete = this.enrollments().filter(e => e.student_id === studentId);
+    const attendanceToDelete = this.attendance().filter(a => a.student_id === studentId);
+    const parentsToDelete = this.parents().filter(p => p.student_id === studentId);
+
+    // Delete enrollments from Firestore then update signal
     for (const enrollment of enrollmentsToDelete) {
       if (enrollment._docId) {
         await this.deleteDoc_('enrollments', enrollment._docId);
       }
     }
-    
-    // Delete attendance records
-    this.attendance.update(a => a.filter(x => x.student_id !== studentId));
-    const attendanceToDelete = this.attendance().filter(a => a.student_id === studentId);
+    this.enrollments.update(e => e.filter(x => x.student_id !== studentId));
+
+    // Delete attendance records from Firestore then update signal
     for (const record of attendanceToDelete) {
       if (record._docId) {
         await this.deleteDoc_('attendance', record._docId);
       }
     }
-    
+    this.attendance.update(a => a.filter(x => x.student_id !== studentId));
+
     // Delete related parents
-    const parentsToDelete = this.parents().filter(p => p.student_id === studentId);
     for (const parent of parentsToDelete) {
       await this.deleteParent(parent.parent_id);
     }
-    
+
     // Delete the student
     const docId = this.findDocId(this.students(), 'student_id', studentId);
     await this.deleteDoc_('students', docId);
@@ -249,16 +340,38 @@ export class DataService {
 
   // ── Enrollments ───────────────────────────────────────────
   async loadEnrollments() {
-    try { this.enrollments.set(await this.getAll<SubjectEnrollment>('enrollments')); }
+    try {
+      const records = await this.getAll<SubjectEnrollment>('enrollments');
+      // Convert Firestore Timestamps to JS Dates (same pattern as loadAttendance)
+      const fixed = records.map(r => ({
+        ...r,
+        enrolled_date: r.enrolled_date instanceof Date
+          ? r.enrolled_date
+          : new Date((r.enrolled_date as any)?.toDate?.() ?? r.enrolled_date)
+      }));
+      this.enrollments.set(fixed);
+    }
     catch (e) { console.error(e); throw e; }
   }
 
   getEnrollments() { return this.enrollments(); }
 
   async enrollStudent(enrollment: SubjectEnrollment) {
-    const saved = await this.addDoc_('enrollments', enrollment);
-    this.enrollments.update(e => [...e, saved]);
-    return saved;
+    // Store enrolled_date as ISO string so it round-trips cleanly (same as attendance dates)
+    const toSave = {
+      ...enrollment,
+      enrolled_date: enrollment.enrolled_date instanceof Date
+        ? enrollment.enrolled_date.toISOString()
+        : new Date(enrollment.enrolled_date).toISOString()
+    };
+    const saved = await this.addDoc_('enrollments', toSave);
+    // Convert back to Date for in-memory signal
+    const fixedSaved = {
+      ...saved,
+      enrolled_date: new Date(saved.enrolled_date as any)
+    };
+    this.enrollments.update(e => [...e, fixedSaved]);
+    return fixedSaved;
   }
 
   async unenrollStudent(enrollmentId: string) {
@@ -298,16 +411,16 @@ export class DataService {
     for (const subject of subjectsToDelete) {
       await this.deleteSubject(subject.subject_id);
     }
-    
-    // Delete related attendance records
-    this.attendance.update(a => a.filter(x => x.instructor_id !== instructorId));
+
+    // Collect attendance records BEFORE updating the signal
     const attendanceToDelete = this.attendance().filter(a => a.instructor_id === instructorId);
     for (const record of attendanceToDelete) {
       if (record._docId) {
         await this.deleteDoc_('attendance', record._docId);
       }
     }
-    
+    this.attendance.update(a => a.filter(x => x.instructor_id !== instructorId));
+
     // Delete the instructor
     const docId = this.findDocId(this.instructors(), 'instructor_id', instructorId);
     await this.deleteDoc_('instructors', docId);

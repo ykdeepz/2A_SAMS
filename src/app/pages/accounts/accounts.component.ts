@@ -249,11 +249,7 @@ export class AccountsComponent {
       } else if (account.role === 'student') {
         const student = this.dataService.students().find(s => s.user_id === userId);
         if (student) {
-          const parent = this.dataService.parents().find(p => p.student_id === student.student_id);
-          if (parent) {
-            await this.dataService.deleteParent(parent.parent_id).catch(() => {});
-            await this.dataService.deleteUser(parent.user_id).catch(() => {});
-          }
+          // deleteStudent already cascades: enrollments, attendance, and parents
           await this.dataService.deleteStudent(student.student_id).catch(() => {});
         }
       } else if (account.role === 'parent') {

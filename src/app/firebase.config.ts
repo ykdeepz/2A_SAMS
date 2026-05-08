@@ -14,3 +14,9 @@ const firebaseConfig = {
 export const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
+
+// Secondary app used exclusively for creating new Firebase Auth accounts.
+// Using a separate app instance keeps the admin's session untouched —
+// createUserWithEmailAndPassword on the primary app would sign the admin out.
+export const secondaryApp = initializeApp(firebaseConfig, 'secondary');
+export const secondaryAuth = getAuth(secondaryApp);

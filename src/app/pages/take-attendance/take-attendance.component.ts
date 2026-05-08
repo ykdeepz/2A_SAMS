@@ -54,11 +54,11 @@ export class TakeAttendanceComponent implements OnInit {
 
   instructorSubjects = computed(() => {
     const user = this.authService.currentUser();
-    if (!user) return this.subjects();
+    if (!user) return [];
     
     // For instructors, show only their assigned subjects
     const instructor = this.dataService.instructors().find(i => i.user_id === user.user_id);
-    if (!instructor) return this.subjects();
+    if (!instructor) return [];
     
     return this.dataService.subjects().filter(s => s.instructor_id === instructor.instructor_id);
   });
@@ -154,21 +154,23 @@ export class TakeAttendanceComponent implements OnInit {
     });
 
     if (result.isConfirmed) {
-      const today = new Date().toDateString();
-      const currentAttendance = this.dataService.attendance();
-      const filteredAttendance = currentAttendance.filter(a => 
-        !(a.subject_id === this.selectedSubjectId && new Date(a.date).toDateString() === today)
-      );
-      
-      this.dataService.attendance.set(filteredAttendance);
-      
-      Swal.fire({
-        icon: 'success',
-        title: 'Cleared!',
-        text: 'All marks have been cleared for today',
-        timer: 2000,
-        showConfirmButton: false
-      });
+      try {
+        // Delete from Firestore AND update the in-memory signal
+        await this.dataService.clearAttendanceForDay(this.selectedSubjectId, new Date());
+        Swal.fire({
+          icon: 'success',
+          title: 'Cleared!',
+          text: 'All marks have been cleared for today',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to clear attendance marks. Please try again.'
+        });
+      }
     }
   }
 }

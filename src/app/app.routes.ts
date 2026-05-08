@@ -28,7 +28,7 @@ export const routes: Routes = [
       { path: 'subject/:id', component: SubjectDetailComponent, data: { renderMode: 'client' } },
       { path: 'take-attendance', component: TakeAttendanceComponent, canActivate: [roleGuard(['instructor', 'student'])] },
       { path: 'attendance-records', component: AttendanceRecordsComponent },
-      { path: 'account-requests', component: CreateAccountComponent, canActivate: [roleGuard(['admin', 'instructor'])] },
+      { path: 'account-requests', component: CreateAccountComponent, canActivate: [roleGuard(['admin'])] },
       { path: 'reports', component: ReportsComponent, canActivate: [roleGuard(['admin', 'instructor'])] },
       { path: 'settings', component: SettingsComponent }
     ]

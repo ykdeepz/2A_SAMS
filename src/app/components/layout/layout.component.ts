@@ -110,7 +110,7 @@ export class LayoutComponent {
       { path: '/subjects', label: role === 'student' ? 'My Subjects' : 'Subjects', icon: 'BookOpen', roles: ['instructor', 'student'] },
       { path: '/take-attendance', label: role === 'student' ? 'Scan QR' : 'Take Attendance', icon: 'ClipboardList', roles: ['instructor', 'student'] },
       { path: '/attendance-records', label: role === 'parent' ? "My Child's Records" : 'Attendance Records', icon: 'ClipboardList', roles: ['admin', 'instructor', 'student', 'parent'] },
-      { path: '/account-requests', label: 'Account Requests', icon: 'UserPlus', roles: ['admin', 'instructor'] },
+      { path: '/account-requests', label: 'Account Requests', icon: 'UserPlus', roles: ['admin'] },
       { path: '/reports', label: 'Reports', icon: 'BarChart3', roles: ['admin', 'instructor'] },
       { path: '/settings', label: 'Settings', icon: 'Settings', roles: ['admin', 'instructor', 'student', 'parent'] }
     ];

@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { DataService } from '../../services/data.service';
 import { Parent, Student, RegistrationRequest } from '../../models/user.model';
 import { LucideAngularModule, CheckCircle2, Check, XCircle } from 'lucide-angular';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../firebase.config';
+import { createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { secondaryAuth } from '../../firebase.config';
 import Swal from 'sweetalert2';
 
 function generateUniqueId(prefix: string) {
@@ -103,23 +103,37 @@ export class CreateAccountComponent {
     const emailExists = this.dataService.users().some(u => u.email === req.email);
     if (emailExists) throw new Error(`Email ${req.email} already exists.`);
 
-    const credential = await createUserWithEmailAndPassword(auth, req.email, 'instructor123');
-    const userId = credential.user.uid;
+    let userId: string | null = null;
+    try {
+      const credential = await createUserWithEmailAndPassword(secondaryAuth, req.email, 'instructor123');
+      userId = credential.user.uid;
+      // Sign out of secondary app immediately — we only needed the UID
+      await signOut(secondaryAuth);
 
-    await this.dataService.addUser({
-      user_id: userId, email: req.email, role: 'instructor' as const,
-      first_name: req.first_name, middle_name: req.middle_name,
-      last_name: req.last_name, full_name: req.full_name,
-      created_at: new Date().toISOString()
-    });
-    await this.dataService.addInstructor({
-      instructor_id: req.instructor_id || generateUniqueId('INST'),
-      first_name: req.first_name, middle_name: req.middle_name,
-      last_name: req.last_name, full_name: req.full_name,
-      email: req.email, phone: req.phone || '',
-      department: req.department || '', user_id: userId,
-      created_at: new Date().toISOString()
-    });
+      await this.dataService.addUser({
+        user_id: userId, email: req.email, role: 'instructor' as const,
+        first_name: req.first_name, middle_name: req.middle_name,
+        last_name: req.last_name, full_name: req.full_name,
+        created_at: new Date().toISOString()
+      });
+      await this.dataService.addInstructor({
+        instructor_id: req.instructor_id || generateUniqueId('INST'),
+        first_name: req.first_name, middle_name: req.middle_name,
+        last_name: req.last_name, full_name: req.full_name,
+        email: req.email, phone: req.phone || '',
+        department: req.department || '', user_id: userId,
+        created_at: new Date().toISOString()
+      });
+    } catch (error) {
+      // Roll back the Firebase Auth account if Firestore writes failed
+      if (userId && secondaryAuth.currentUser?.uid === userId) {
+        try { await secondaryAuth.currentUser.delete(); } catch (e) {
+          console.error('Failed to roll back Firebase Auth account:', e);
+        }
+      }
+      await signOut(secondaryAuth).catch(() => {});
+      throw error;
+    }
   }
 
   // ── Create student + parent from request ───────────────────
@@ -131,42 +145,59 @@ export class CreateAccountComponent {
       if (parentEmailExists) throw new Error(`Parent email ${req.parent_email} already exists.`);
     }
 
-    const stuCredential = await createUserWithEmailAndPassword(auth, req.email, 'student123');
-    const studentUserId = stuCredential.user.uid;
+    let studentUserId: string | null = null;
+    let parentUserId: string | null = null;
 
-    await this.dataService.addUser({
-      user_id: studentUserId, email: req.email, role: 'student' as const,
-      first_name: req.first_name, middle_name: req.middle_name,
-      last_name: req.last_name, full_name: req.full_name,
-      created_at: new Date().toISOString()
-    });
-
-    const studentId = req.student_id || generateUniqueId('STU');
-    await this.dataService.addStudent({
-      student_id: studentId, first_name: req.first_name, middle_name: req.middle_name,
-      last_name: req.last_name, full_name: req.full_name, email: req.email,
-      grade_level: req.grade_level || '', section: req.section || '',
-      qr_code_data: `STUDENT-${studentId}`, instructor_id: 'ADMIN-CREATED',
-      user_id: studentUserId, created_at: new Date().toISOString()
-    } as Student);
-
-    if (req.parent_email) {
-      const parentCredential = await createUserWithEmailAndPassword(auth, req.parent_email, 'parent123');
-      const parentUserId = parentCredential.user.uid;
+    try {
+      const stuCredential = await createUserWithEmailAndPassword(secondaryAuth, req.email, 'student123');
+      studentUserId = stuCredential.user.uid;
+      // Sign out immediately so the secondary app is clean for the next call
+      await signOut(secondaryAuth);
 
       await this.dataService.addUser({
-        user_id: parentUserId, email: req.parent_email, role: 'parent' as const,
-        first_name: req.parent_first_name || '', middle_name: req.parent_middle_name,
-        last_name: req.parent_last_name || '', full_name: req.parent_full_name || '',
+        user_id: studentUserId, email: req.email, role: 'student' as const,
+        first_name: req.first_name, middle_name: req.middle_name,
+        last_name: req.last_name, full_name: req.full_name,
         created_at: new Date().toISOString()
       });
-      await this.dataService.addParent({
-        parent_id: 'P' + Date.now(), first_name: req.parent_first_name || '',
-        middle_name: req.parent_middle_name, last_name: req.parent_last_name || '',
-        full_name: req.parent_full_name || '', email: req.parent_email,
-        phone: req.parent_phone || '', student_id: studentId,
-        user_id: parentUserId, created_at: new Date().toISOString()
-      } as Parent);
+
+      const studentId = req.student_id || generateUniqueId('STU');
+      await this.dataService.addStudent({
+        student_id: studentId, first_name: req.first_name, middle_name: req.middle_name,
+        last_name: req.last_name, full_name: req.full_name, email: req.email,
+        grade_level: req.grade_level || '', section: req.section || '',
+        qr_code_data: `STUDENT-${studentId}`, instructor_id: 'ADMIN-CREATED',
+        user_id: studentUserId, created_at: new Date().toISOString()
+      } as Student);
+
+      if (req.parent_email) {
+        const parentCredential = await createUserWithEmailAndPassword(secondaryAuth, req.parent_email, 'parent123');
+        parentUserId = parentCredential.user.uid;
+        await signOut(secondaryAuth);
+
+        await this.dataService.addUser({
+          user_id: parentUserId, email: req.parent_email, role: 'parent' as const,
+          first_name: req.parent_first_name || '', middle_name: req.parent_middle_name,
+          last_name: req.parent_last_name || '', full_name: req.parent_full_name || '',
+          created_at: new Date().toISOString()
+        });
+        await this.dataService.addParent({
+          parent_id: 'P' + Date.now(), first_name: req.parent_first_name || '',
+          middle_name: req.parent_middle_name, last_name: req.parent_last_name || '',
+          full_name: req.parent_full_name || '', email: req.parent_email,
+          phone: req.parent_phone || '', student_id: studentId,
+          user_id: parentUserId, created_at: new Date().toISOString()
+        } as Parent);
+      }
+    } catch (error) {
+      // Roll back any Firebase Auth accounts created before the failure
+      if (secondaryAuth.currentUser) {
+        try { await secondaryAuth.currentUser.delete(); } catch (e) {
+          console.error('Failed to roll back Auth account:', e);
+        }
+      }
+      await signOut(secondaryAuth).catch(() => {});
+      throw error;
     }
   }
 }

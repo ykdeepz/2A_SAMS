@@ -284,7 +284,13 @@ export class QrCodeScannerComponent implements OnInit, OnDestroy {
         method: 'QR' as const
       };
 
-      await this.dataService.addAttendance(attendanceRecord);
+      const marked = await this.dataService.addAttendance(attendanceRecord);
+
+      if (!marked) {
+        // Already marked today (duplicate detected by the service)
+        this.lastScan.set({ sessionId, timestamp: new Date(), status: 'duplicate' });
+        return;
+      }
 
       this.scannedSessions().add(sessionId);
       this.lastScan.set({ sessionId, timestamp: new Date(), status: 'success' });

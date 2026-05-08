@@ -141,8 +141,11 @@ export class SubjectsComponent {
       this.showCreateModal.set(false);
       this.newSubject = {};
       await Swal.fire({ title: 'Success!', text: 'Subject created successfully', icon: 'success', timer: 2000, showConfirmButton: false });
-    } catch {
-      await Swal.fire({ title: 'Error!', text: 'Failed to create subject', icon: 'error' });
+    } catch (error: any) {
+      const msg = error?.code === 'permission-denied'
+        ? 'Permission denied. Your account may need to be re-logged in, or contact the admin.'
+        : (error?.message || 'Failed to create subject');
+      await Swal.fire({ title: 'Error!', text: msg, icon: 'error' });
     }
   }
 
