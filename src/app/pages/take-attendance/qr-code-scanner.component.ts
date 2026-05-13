@@ -5,6 +5,7 @@ import { DataService } from '../../services/data.service';
 import { AuthService } from '../../services/auth.service';
 import { LucideAngularModule, Camera, CheckCircle, AlertCircle, XCircle, Upload } from 'lucide-angular';
 import { BrowserQRCodeReader } from '@zxing/library';
+import jsQR from 'jsqr';
 import Swal from 'sweetalert2';
 
 interface ScanResult {
@@ -204,15 +205,33 @@ export class QrCodeScannerComponent implements OnInit, OnDestroy {
   async onFileUpload(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
+
     try {
-      const url = URL.createObjectURL(file);
-      const reader = new BrowserQRCodeReader();
-      const result = await reader.decodeFromImageUrl(url);
-      URL.revokeObjectURL(url);
-      await this.processQRCode(result.getText());
-    } catch {
-      await Swal.fire('Invalid Image', 'Could not find a valid QR code in the uploaded image.', 'error');
+      // Draw the image onto a canvas, then read pixel data for jsQR
+      const bitmap = await createImageBitmap(file);
+      const canvas = document.createElement('canvas');
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas not available');
+      ctx.drawImage(bitmap, 0, 0);
+      bitmap.close();
+
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+      if (!code) {
+        await Swal.fire('Invalid Image', 'Could not find a valid QR code in the uploaded image.', 'error');
+        (event.target as HTMLInputElement).value = '';
+        return;
+      }
+
+      await this.processQRCode(code.data);
+    } catch (err) {
+      console.error('Upload QR error:', err);
+      await Swal.fire('Invalid Image', 'Could not read the uploaded image. Please try a clearer photo.', 'error');
     }
+
     (event.target as HTMLInputElement).value = '';
   }
 
@@ -301,10 +320,11 @@ export class QrCodeScannerComponent implements OnInit, OnDestroy {
         if (this.cameraStarted()) this.scanning.set(true);
       }, 3000);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('QR processing error:', error);
       this.lastScan.set({ sessionId: '', timestamp: new Date(), status: 'error' });
-      await Swal.fire('Error', 'Failed to mark attendance. Please try again.', 'error');
+      const msg = error?.message || error?.code || 'Unknown error';
+      await Swal.fire('Error', `Failed to mark attendance: ${msg}`, 'error');
     }
   }
 

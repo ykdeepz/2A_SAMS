@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import {
-  collection, getDocs, addDoc, setDoc, updateDoc, deleteDoc, doc
+  collection, getDocs, addDoc, setDoc, updateDoc, deleteDoc, doc, onSnapshot
 } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from '../firebase.config';
@@ -21,6 +21,8 @@ export class DataService {
   loading     = signal(true);
   loadError   = signal(false);
 
+  private unsubscribeRequests?: () => void;
+
   constructor() {
     // Wait for Firebase Auth to restore the session before loading Firestore data.
     // Loading immediately in the constructor fires before the auth token is ready,
@@ -34,6 +36,7 @@ export class DataService {
         this.loadAllData();
       } else {
         // Signed out — clear all protected data from memory
+        this.stopRegistrationRequestsListener();
         this.students.set([]);
         this.subjects.set([]);
         this.attendance.set([]);
@@ -73,12 +76,9 @@ export class DataService {
       }
 
       // Load registration_requests separately — only admins can read these,
-      // so a permission-denied here is expected for non-admin users
-      await this.loadRegistrationRequests().catch(e => {
-        if (e?.code !== 'permission-denied') {
-          console.error('Failed to load registration requests:', e);
-        }
-      });
+      // so a permission-denied here is expected for non-admin users.
+      // Use a real-time listener so new submissions appear instantly without reload.
+      this.startRegistrationRequestsListener();
 
       // Fix any user documents whose Firestore doc ID doesn't match their
       // user_id (Auth UID). This happens for accounts created before the
@@ -514,6 +514,32 @@ export class DataService {
   }
 
   // ── Registration Requests ─────────────────────────────────
+  // Real-time listener — new submissions appear instantly for the admin
+  // without requiring a page reload.
+  private startRegistrationRequestsListener() {
+    this.stopRegistrationRequestsListener(); // clear any existing listener first
+    this.unsubscribeRequests = onSnapshot(
+      collection(db, 'registration_requests'),
+      (snap) => {
+        const records = snap.docs.map(d => ({ ...d.data(), _docId: d.id }) as RegistrationRequest);
+        this.registrationRequests.set(records);
+      },
+      (err) => {
+        // permission-denied = non-admin user, silently ignore
+        if ((err as any)?.code !== 'permission-denied') {
+          console.error('Registration requests listener error:', err);
+        }
+      }
+    );
+  }
+
+  private stopRegistrationRequestsListener() {
+    if (this.unsubscribeRequests) {
+      this.unsubscribeRequests();
+      this.unsubscribeRequests = undefined;
+    }
+  }
+
   async loadRegistrationRequests() {
     try { this.registrationRequests.set(await this.getAll<RegistrationRequest>('registration_requests')); }
     catch (e) { console.error(e); throw e; }

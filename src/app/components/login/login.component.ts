@@ -53,6 +53,28 @@ export class LoginComponent {
 
   departments = computed(() => this.dataService.departments());
 
+  // ── ID uniqueness checks ───────────────────────────────────
+  // Check against existing instructors, students, AND pending/approved requests
+  instructorIdTaken = computed(() => {
+    const id = this.instForm.instructor_id.trim();
+    if (!id) return false;
+    const takenInInstructors = this.dataService.instructors().some(i => i.instructor_id === id);
+    const takenInRequests = this.dataService.registrationRequests().some(
+      r => r.instructor_id === id && r.status !== 'denied'
+    );
+    return takenInInstructors || takenInRequests;
+  });
+
+  studentIdTaken = computed(() => {
+    const id = this.stuForm.student_id.trim();
+    if (!id) return false;
+    const takenInStudents = this.dataService.students().some(s => s.student_id === id);
+    const takenInRequests = this.dataService.registrationRequests().some(
+      r => r.student_id === id && r.status !== 'denied'
+    );
+    return takenInStudents || takenInRequests;
+  });
+
   // ── Student signup form ────────────────────────────────────
   stuForm = {
     student_id: '',
@@ -99,6 +121,7 @@ export class LoginComponent {
   isInstructorFormValid(): boolean {
     return !!(
       this.instForm.instructor_id &&
+      !this.instructorIdTaken() &&
       this.instForm.first_name &&
       this.instForm.last_name &&
       this.instForm.email &&
@@ -110,6 +133,7 @@ export class LoginComponent {
   isStudentFormValid(): boolean {
     return !!(
       this.stuForm.student_id &&
+      !this.studentIdTaken() &&
       this.stuForm.first_name &&
       this.stuForm.last_name &&
       this.stuForm.email &&

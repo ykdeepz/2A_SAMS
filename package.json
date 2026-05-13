@@ -45,6 +45,7 @@
     "express": "^5.1.0",
     "firebase": "^12.12.0",
     "framer-motion": "^12.34.3",
+    "jsqr": "1.4.0",
     "lucide-angular": "^0.576.0",
     "qrcode": "^1.5.4",
     "rxjs": "~7.8.0",
