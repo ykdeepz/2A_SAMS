@@ -46,15 +46,10 @@ interface ScanResult {
             <!-- Camera Stream -->
             <div class="relative border-4 border-amber-400 rounded-lg overflow-hidden bg-black h-96">
               <video #videoElement class="w-full h-full object-cover" (play)="onVidePlay()"></video>
-              @if (scanning()) {
-                <div class="absolute inset-0 flex items-center justify-center bg-black/50">
-                  <div class="text-white text-center">
-                    <div class="animate-spin w-12 h-12 border-4 border-amber-400 border-t-transparent rounded-full mx-auto mb-3"></div>
-                    <p class="text-lg font-semibold">Scanning...</p>
-                  </div>
-                </div>
-              }
             </div>
+            <p class="text-center text-sm text-amber-600 font-medium animate-pulse">
+              Point camera at QR code to scan
+            </p>
 
             <!-- Stop Button -->
             <button (click)="stopCamera()" class="w-full bg-red-600 hover:bg-red-700 text-white rounded-lg px-6 py-2 font-medium transition-colors">

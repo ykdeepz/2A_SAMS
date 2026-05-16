@@ -5,6 +5,8 @@ import { AuthService } from '../../services/auth.service';
 import { DataService } from '../../services/data.service';
 import { RegistrationRequest } from '../../models/user.model';
 import { LucideAngularModule, CheckCircle2, AlertCircle, ArrowRight, Eye, EyeClosed, UserPlus, ArrowLeft } from 'lucide-angular';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '../../firebase.config';
 import Swal from 'sweetalert2';
 
 type SignupTab = 'instructor' | 'student';
@@ -53,27 +55,25 @@ export class LoginComponent {
 
   departments = computed(() => this.dataService.departments());
 
-  // ── ID uniqueness checks ───────────────────────────────────
-  // Check against existing instructors, students, AND pending/approved requests
-  instructorIdTaken = computed(() => {
-    const id = this.instForm.instructor_id.trim();
-    if (!id) return false;
-    const takenInInstructors = this.dataService.instructors().some(i => i.instructor_id === id);
-    const takenInRequests = this.dataService.registrationRequests().some(
-      r => r.instructor_id === id && r.status !== 'denied'
-    );
-    return takenInInstructors || takenInRequests;
-  });
+  // ── ID uniqueness check — queries Firestore directly ──────
+  // (signals are empty on the login page since user is unauthenticated)
+  private async isInstructorIdTaken(id: string): Promise<boolean> {
+    // Check instructors collection
+    const instSnap = await getDocs(query(collection(db, 'instructors'), where('instructor_id', '==', id)));
+    if (!instSnap.empty) return true;
+    // Check pending/approved registration requests
+    const reqSnap = await getDocs(query(collection(db, 'registration_requests'), where('instructor_id', '==', id)));
+    return reqSnap.docs.some(d => d.data()['status'] !== 'denied');
+  }
 
-  studentIdTaken = computed(() => {
-    const id = this.stuForm.student_id.trim();
-    if (!id) return false;
-    const takenInStudents = this.dataService.students().some(s => s.student_id === id);
-    const takenInRequests = this.dataService.registrationRequests().some(
-      r => r.student_id === id && r.status !== 'denied'
-    );
-    return takenInStudents || takenInRequests;
-  });
+  private async isStudentIdTaken(id: string): Promise<boolean> {
+    // Check students collection
+    const stuSnap = await getDocs(query(collection(db, 'students'), where('student_id', '==', id)));
+    if (!stuSnap.empty) return true;
+    // Check pending/approved registration requests
+    const reqSnap = await getDocs(query(collection(db, 'registration_requests'), where('student_id', '==', id)));
+    return reqSnap.docs.some(d => d.data()['status'] !== 'denied');
+  }
 
   // ── Student signup form ────────────────────────────────────
   stuForm = {
@@ -121,7 +121,6 @@ export class LoginComponent {
   isInstructorFormValid(): boolean {
     return !!(
       this.instForm.instructor_id &&
-      !this.instructorIdTaken() &&
       this.instForm.first_name &&
       this.instForm.last_name &&
       this.instForm.email &&
@@ -133,7 +132,6 @@ export class LoginComponent {
   isStudentFormValid(): boolean {
     return !!(
       this.stuForm.student_id &&
-      !this.studentIdTaken() &&
       this.stuForm.first_name &&
       this.stuForm.last_name &&
       this.stuForm.email &&
@@ -156,6 +154,19 @@ export class LoginComponent {
         if (!this.isInstructorFormValid()) {
           this.signupError.set('Please fill in all required fields.');
           this.signupLoading.set(false);
+          return;
+        }
+
+        // Check instructor ID uniqueness against Firestore
+        const instIdTaken = await this.isInstructorIdTaken(this.instForm.instructor_id.trim());
+        if (instIdTaken) {
+          this.signupLoading.set(false);
+          await Swal.fire({
+            title: 'ID Already Taken',
+            text: `Instructor ID "${this.instForm.instructor_id}" is already in use. Please use a different ID.`,
+            icon: 'error',
+            confirmButtonColor: '#ef4444'
+          });
           return;
         }
 
@@ -193,6 +204,19 @@ export class LoginComponent {
         if (!this.isStudentFormValid()) {
           this.signupError.set('Please fill in all required fields.');
           this.signupLoading.set(false);
+          return;
+        }
+
+        // Check student ID uniqueness against Firestore
+        const stuIdTaken = await this.isStudentIdTaken(this.stuForm.student_id.trim());
+        if (stuIdTaken) {
+          this.signupLoading.set(false);
+          await Swal.fire({
+            title: 'ID Already Taken',
+            text: `Student ID "${this.stuForm.student_id}" is already in use. Please use a different ID.`,
+            icon: 'error',
+            confirmButtonColor: '#ef4444'
+          });
           return;
         }
 

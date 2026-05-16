@@ -118,11 +118,7 @@
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="signup-label">Instructor ID <span class="text-red-400">*</span></label>
-              <input type="text" [(ngModel)]="instForm.instructor_id" placeholder="e.g. INST-001" class="login-input text-sm"
-                     [class.border-red-400]="instructorIdTaken()">
-              @if (instructorIdTaken()) {
-                <p class="text-red-400 text-xs mt-1">This Instructor ID is already taken.</p>
-              }
+              <input type="text" [(ngModel)]="instForm.instructor_id" placeholder="e.g. INST-001" class="login-input text-sm">
             </div>
             <div>
               <label class="signup-label">Department <span class="text-red-400">*</span></label>
@@ -166,11 +162,7 @@
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="signup-label">Student ID <span class="text-red-400">*</span></label>
-              <input type="text" [(ngModel)]="stuForm.student_id" placeholder="e.g. STU-001" class="login-input text-sm"
-                     [class.border-red-400]="studentIdTaken()">
-              @if (studentIdTaken()) {
-                <p class="text-red-400 text-xs mt-1">This Student ID is already taken.</p>
-              }
+              <input type="text" [(ngModel)]="stuForm.student_id" placeholder="e.g. STU-001" class="login-input text-sm">
             </div>
             <div>
               <label class="signup-label">Grade Level <span class="text-red-400">*</span></label>

@@ -210,8 +210,6 @@ export class QrCodeGeneratorComponent implements OnInit, OnDestroy {
         color: { dark: '#000000', light: '#FFFFFF' }
       });
       this.qrCodeImage.set(dataUrl);
-
-      await Swal.fire({ title: 'QR Code Generated!', html: 'Share this QR code with students to scan.', icon: 'success', timer: 2000, showConfirmButton: false });
     } catch (error) {
       await Swal.fire('Error', `Failed to generate QR code: ${error instanceof Error ? error.message : error}`, 'error');
     } finally {
