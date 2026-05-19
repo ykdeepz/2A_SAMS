@@ -36,6 +36,7 @@
     "@angular/platform-server": "^21.2.11",
     "@angular/router": "^21.2.11",
     "@angular/ssr": "^21.2.9",
+    "@emailjs/browser": "4.4.1",
     "@fullcalendar/angular": "^6.1.20",
     "@fullcalendar/core": "^6.1.20",
     "@fullcalendar/daygrid": "^6.1.20",

@@ -5,6 +5,7 @@ import { Parent, Student, RegistrationRequest } from '../../models/user.model';
 import { LucideAngularModule, CheckCircle2, Check, XCircle } from 'lucide-angular';
 import { createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { secondaryAuth } from '../../firebase.config';
+import { EmailService } from '../../services/email.service';
 import Swal from 'sweetalert2';
 
 function generateUniqueId(prefix: string) {
@@ -20,6 +21,9 @@ function generateUniqueId(prefix: string) {
 })
 export class CreateAccountComponent {
   private dataService = inject(DataService);
+  private emailService = inject(EmailService);
+
+  private readonly loginUrl = window.location.origin + '/login';
 
   readonly CheckCircle2 = CheckCircle2;
   readonly Check = Check;
@@ -124,6 +128,16 @@ export class CreateAccountComponent {
         department: req.department || '', user_id: userId,
         created_at: new Date().toISOString()
       });
+
+      // Send approval email with login credentials
+      await this.emailService.sendApprovalEmail({
+        to_email:  req.email,
+        full_name: req.full_name,
+        email:     req.email,
+        password:  'instructor123',
+        role:      'Instructor',
+        login_url: this.loginUrl
+      });
     } catch (error) {
       // Roll back the Firebase Auth account if Firestore writes failed
       if (userId && secondaryAuth.currentUser?.uid === userId) {
@@ -170,6 +184,16 @@ export class CreateAccountComponent {
         user_id: studentUserId, created_at: new Date().toISOString()
       } as Student);
 
+      // Send approval email to student
+      await this.emailService.sendApprovalEmail({
+        to_email:  req.email,
+        full_name: req.full_name,
+        email:     req.email,
+        password:  'student123',
+        role:      'Student',
+        login_url: this.loginUrl
+      });
+
       if (req.parent_email) {
         const parentCredential = await createUserWithEmailAndPassword(secondaryAuth, req.parent_email, 'parent123');
         parentUserId = parentCredential.user.uid;
@@ -188,6 +212,16 @@ export class CreateAccountComponent {
           phone: req.parent_phone || '', student_id: studentId,
           user_id: parentUserId, created_at: new Date().toISOString()
         } as Parent);
+
+        // Send approval email to parent
+        await this.emailService.sendApprovalEmail({
+          to_email:  req.parent_email,
+          full_name: req.parent_full_name || 'Parent/Guardian',
+          email:     req.parent_email,
+          password:  'parent123',
+          role:      'Parent',
+          login_url: this.loginUrl
+        });
       }
     } catch (error) {
       // Roll back any Firebase Auth accounts created before the failure
