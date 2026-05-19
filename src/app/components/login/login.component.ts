@@ -58,21 +58,25 @@ export class LoginComponent {
   // ── ID uniqueness check — queries Firestore directly ──────
   // (signals are empty on the login page since user is unauthenticated)
   private async isInstructorIdTaken(id: string): Promise<boolean> {
-    // Check instructors collection
-    const instSnap = await getDocs(query(collection(db, 'instructors'), where('instructor_id', '==', id)));
-    if (!instSnap.empty) return true;
-    // Check pending/approved registration requests
-    const reqSnap = await getDocs(query(collection(db, 'registration_requests'), where('instructor_id', '==', id)));
-    return reqSnap.docs.some(d => d.data()['status'] !== 'denied');
+    try {
+      const instSnap = await getDocs(query(collection(db, 'instructors'), where('instructor_id', '==', id)));
+      if (!instSnap.empty) return true;
+    } catch { /* permission denied — skip */ }
+    try {
+      const reqSnap = await getDocs(query(collection(db, 'registration_requests'), where('instructor_id', '==', id)));
+      return reqSnap.docs.some(d => d.data()['status'] !== 'denied');
+    } catch { return false; }
   }
 
   private async isStudentIdTaken(id: string): Promise<boolean> {
-    // Check students collection
-    const stuSnap = await getDocs(query(collection(db, 'students'), where('student_id', '==', id)));
-    if (!stuSnap.empty) return true;
-    // Check pending/approved registration requests
-    const reqSnap = await getDocs(query(collection(db, 'registration_requests'), where('student_id', '==', id)));
-    return reqSnap.docs.some(d => d.data()['status'] !== 'denied');
+    try {
+      const stuSnap = await getDocs(query(collection(db, 'students'), where('student_id', '==', id)));
+      if (!stuSnap.empty) return true;
+    } catch { /* permission denied — skip */ }
+    try {
+      const reqSnap = await getDocs(query(collection(db, 'registration_requests'), where('student_id', '==', id)));
+      return reqSnap.docs.some(d => d.data()['status'] !== 'denied');
+    } catch { return false; }
   }
 
   // ── Student signup form ────────────────────────────────────

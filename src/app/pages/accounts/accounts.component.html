@@ -4,78 +4,132 @@
     <p>View and manage all registered accounts in the system</p>
   </div>
 
-  <div class="accounts-grid">
-    <!-- Instructors Column -->
-    <div class="account-column">
-      <div class="column-header">
-        <h2>Instructors</h2>
-        <span class="count">{{ instructorAccounts().length }}</span>
-      </div>
-      <div class="account-list">
-        @for (account of instructorAccounts(); track account.user_id) {
-          <div class="account-card" (click)="viewAccount(account)">
-            <div class="account-icon">
-              <lucide-icon [img]="UserCircle" [size]="32"></lucide-icon>
-            </div>
-            <div class="account-info">
-              <h3>{{ account.full_name }} <span class="department-tag">{{ getInstructorDepartment(account.user_id) }}</span></h3>
-              <p class="email">{{ account.email }}</p>
-              <span class="badge" [ngClass]="getRoleBadgeClass(account.role)">{{ account.role }}</span>
-            </div>
+  <div class="accordion-list">
+
+    <!-- Instructors Section -->
+    <div class="accordion-section">
+      <button class="accordion-header" (click)="toggleSection('instructors')">
+        <div class="accordion-title">
+          <span class="accordion-label">Instructors</span>
+          <span class="count">{{ instructorAccounts().length }}</span>
+        </div>
+        <lucide-icon [img]="ChevronDown" [size]="20"
+          [class]="'chevron ' + (openSection() === 'instructors' ? 'open' : '')">
+        </lucide-icon>
+      </button>
+
+      @if (openSection() === 'instructors') {
+        <div class="accordion-body">
+          <!-- Search -->
+          <div class="search-bar">
+            <lucide-icon [img]="Search" [size]="16" class="search-icon"></lucide-icon>
+            <input type="text" [(ngModel)]="instructorSearch"
+              placeholder="Search instructors..."
+              class="search-input">
           </div>
-        } @empty {
-          <div class="empty-state"><p>No instructor accounts yet</p></div>
-        }
-      </div>
+          <!-- List -->
+          <div class="account-list">
+            @for (account of filteredInstructors(); track account.user_id) {
+              <div class="account-card" (click)="viewAccount(account)">
+                <div class="account-icon">
+                  <lucide-icon [img]="UserCircle" [size]="32"></lucide-icon>
+                </div>
+                <div class="account-info">
+                  <h3>{{ account.full_name }}
+                    <span class="department-tag">{{ getInstructorDepartment(account.user_id) }}</span>
+                  </h3>
+                  <p class="email">{{ account.email }}</p>
+                  <span class="badge" [ngClass]="getRoleBadgeClass(account.role)">{{ account.role }}</span>
+                </div>
+              </div>
+            } @empty {
+              <div class="empty-state"><p>No instructors found</p></div>
+            }
+          </div>
+        </div>
+      }
     </div>
 
-    <!-- Students Column -->
-    <div class="account-column">
-      <div class="column-header">
-        <h2>Students</h2>
-        <span class="count">{{ studentAccounts().length }}</span>
-      </div>
-      <div class="account-list">
-        @for (account of studentAccounts(); track account.user_id) {
-          <div class="account-card" (click)="viewAccount(account)">
-            <div class="account-icon">
-              <lucide-icon [img]="UserCircle" [size]="32"></lucide-icon>
-            </div>
-            <div class="account-info">
-              <h3>{{ account.full_name }}</h3>
-              <p class="email">{{ account.email }}</p>
-              <span class="badge" [ngClass]="getRoleBadgeClass(account.role)">{{ account.role }}</span>
-            </div>
+    <!-- Students Section -->
+    <div class="accordion-section">
+      <button class="accordion-header" (click)="toggleSection('students')">
+        <div class="accordion-title">
+          <span class="accordion-label">Students</span>
+          <span class="count">{{ studentAccounts().length }}</span>
+        </div>
+        <lucide-icon [img]="ChevronDown" [size]="20"
+          [class]="'chevron ' + (openSection() === 'students' ? 'open' : '')">
+        </lucide-icon>
+      </button>
+
+      @if (openSection() === 'students') {
+        <div class="accordion-body">
+          <div class="search-bar">
+            <lucide-icon [img]="Search" [size]="16" class="search-icon"></lucide-icon>
+            <input type="text" [(ngModel)]="studentSearch"
+              placeholder="Search students..."
+              class="search-input">
           </div>
-        } @empty {
-          <div class="empty-state"><p>No student accounts yet</p></div>
-        }
-      </div>
+          <div class="account-list">
+            @for (account of filteredStudents(); track account.user_id) {
+              <div class="account-card" (click)="viewAccount(account)">
+                <div class="account-icon">
+                  <lucide-icon [img]="UserCircle" [size]="32"></lucide-icon>
+                </div>
+                <div class="account-info">
+                  <h3>{{ account.full_name }}</h3>
+                  <p class="email">{{ account.email }}</p>
+                  <span class="badge" [ngClass]="getRoleBadgeClass(account.role)">{{ account.role }}</span>
+                </div>
+              </div>
+            } @empty {
+              <div class="empty-state"><p>No students found</p></div>
+            }
+          </div>
+        </div>
+      }
     </div>
 
-    <!-- Parents Column -->
-    <div class="account-column">
-      <div class="column-header">
-        <h2>Parents</h2>
-        <span class="count">{{ parentAccounts().length }}</span>
-      </div>
-      <div class="account-list">
-        @for (account of parentAccounts(); track account.user_id) {
-          <div class="account-card" (click)="viewAccount(account)">
-            <div class="account-icon">
-              <lucide-icon [img]="UserCircle" [size]="32"></lucide-icon>
-            </div>
-            <div class="account-info">
-              <h3>{{ account.full_name }}</h3>
-              <p class="email">{{ account.email }}</p>
-              <span class="badge" [ngClass]="getRoleBadgeClass(account.role)">{{ account.role }}</span>
-            </div>
+    <!-- Parents Section -->
+    <div class="accordion-section">
+      <button class="accordion-header" (click)="toggleSection('parents')">
+        <div class="accordion-title">
+          <span class="accordion-label">Parents</span>
+          <span class="count">{{ parentAccounts().length }}</span>
+        </div>
+        <lucide-icon [img]="ChevronDown" [size]="20"
+          [class]="'chevron ' + (openSection() === 'parents' ? 'open' : '')">
+        </lucide-icon>
+      </button>
+
+      @if (openSection() === 'parents') {
+        <div class="accordion-body">
+          <div class="search-bar">
+            <lucide-icon [img]="Search" [size]="16" class="search-icon"></lucide-icon>
+            <input type="text" [(ngModel)]="parentSearch"
+              placeholder="Search parents..."
+              class="search-input">
           </div>
-        } @empty {
-          <div class="empty-state"><p>No parent accounts yet</p></div>
-        }
-      </div>
+          <div class="account-list">
+            @for (account of filteredParents(); track account.user_id) {
+              <div class="account-card" (click)="viewAccount(account)">
+                <div class="account-icon">
+                  <lucide-icon [img]="UserCircle" [size]="32"></lucide-icon>
+                </div>
+                <div class="account-info">
+                  <h3>{{ account.full_name }}</h3>
+                  <p class="email">{{ account.email }}</p>
+                  <span class="badge" [ngClass]="getRoleBadgeClass(account.role)">{{ account.role }}</span>
+                </div>
+              </div>
+            } @empty {
+              <div class="empty-state"><p>No parents found</p></div>
+            }
+          </div>
+        </div>
+      }
     </div>
+
   </div>
 </div>
 
@@ -93,7 +147,6 @@
       @if (selectedAccount(); as account) {
         <div class="modal-body">
           @if (!isEditing()) {
-            <!-- View Mode -->
             <div class="detail-section">
               <div class="detail-row">
                 <lucide-icon [img]="UserCircle" [size]="20"></lucide-icon>
@@ -102,7 +155,6 @@
                   <p>{{ account.full_name }}</p>
                 </div>
               </div>
-
               <div class="detail-row">
                 <lucide-icon [img]="Mail" [size]="20"></lucide-icon>
                 <div class="detail-content">
@@ -110,7 +162,6 @@
                   <p>{{ account.email }}</p>
                 </div>
               </div>
-
               @if (account.role === 'instructor' && selectedInstructorDetails()) {
                 <div class="detail-row">
                   <lucide-icon [img]="Shield" [size]="20"></lucide-icon>
@@ -119,7 +170,6 @@
                     <p>{{ selectedInstructorDetails().instructor_id }}</p>
                   </div>
                 </div>
-
                 <div class="detail-row">
                   <lucide-icon [img]="Shield" [size]="20"></lucide-icon>
                   <div class="detail-content">
@@ -127,7 +177,6 @@
                     <p>{{ selectedInstructorDetails().department }}</p>
                   </div>
                 </div>
-
                 <div class="detail-row">
                   <lucide-icon [img]="Mail" [size]="20"></lucide-icon>
                   <div class="detail-content">
@@ -140,13 +189,10 @@
                   <lucide-icon [img]="Shield" [size]="20"></lucide-icon>
                   <div class="detail-content">
                     <label>Role</label>
-                    <span class="badge" [ngClass]="getRoleBadgeClass(account.role)">
-                      {{ account.role }}
-                    </span>
+                    <span class="badge" [ngClass]="getRoleBadgeClass(account.role)">{{ account.role }}</span>
                   </div>
                 </div>
               }
-
               <div class="detail-row">
                 <lucide-icon [img]="Calendar" [size]="20"></lucide-icon>
                 <div class="detail-content">
@@ -155,7 +201,6 @@
                 </div>
               </div>
             </div>
-
             <div class="modal-actions">
               <button class="btn-delete" (click)="deleteAccount()">
                 <lucide-icon [img]="Trash2" [size]="18"></lucide-icon>
@@ -167,69 +212,37 @@
               </button>
             </div>
           } @else {
-            <!-- Edit Mode -->
             <form class="edit-form" (ngSubmit)="saveEdit()">
               <div class="form-group">
                 <label>First Name</label>
-                <input 
-                  type="text" 
-                  [value]="editForm().first_name"
-                  (input)="onFormFieldChange('first_name', $event)"
-                  name="first_name"
-                  required
-                />
+                <input type="text" [value]="editForm().first_name"
+                  (input)="onFormFieldChange('first_name', $event)" name="first_name" required/>
               </div>
-
               <div class="form-group">
                 <label>Middle Name</label>
-                <input 
-                  type="text" 
-                  [value]="editForm().middle_name"
-                  (input)="onFormFieldChange('middle_name', $event)"
-                  name="middle_name"
-                />
+                <input type="text" [value]="editForm().middle_name"
+                  (input)="onFormFieldChange('middle_name', $event)" name="middle_name"/>
               </div>
-
               <div class="form-group">
                 <label>Last Name</label>
-                <input 
-                  type="text" 
-                  [value]="editForm().last_name"
-                  (input)="onFormFieldChange('last_name', $event)"
-                  name="last_name"
-                  required
-                />
+                <input type="text" [value]="editForm().last_name"
+                  (input)="onFormFieldChange('last_name', $event)" name="last_name" required/>
               </div>
-
               <div class="form-group">
                 <label>Email</label>
-                <input 
-                  type="email" 
-                  [value]="editForm().email"
-                  (input)="onFormFieldChange('email', $event)"
-                  name="email"
-                  required
-                />
+                <input type="email" [value]="editForm().email"
+                  (input)="onFormFieldChange('email', $event)" name="email" required/>
               </div>
-
               @if (account.role === 'instructor') {
                 <div class="form-group">
                   <label>Phone</label>
-                  <input 
-                    type="tel" 
-                    [value]="editForm().phone"
-                    (input)="onFormFieldChange('phone', $event)"
-                    name="phone"
-                    required
-                  />
+                  <input type="tel" [value]="editForm().phone"
+                    (input)="onFormFieldChange('phone', $event)" name="phone" required/>
                 </div>
-
                 <div class="form-group">
                   <label>Department</label>
-                  <select 
-                    [value]="editForm().department"
-                    (change)="onFormFieldChange('department', $event)"
-                    name="department" required>
+                  <select [value]="editForm().department"
+                    (change)="onFormFieldChange('department', $event)" name="department" required>
                     <option value="">Select Department</option>
                     @for (dept of dataService.departments(); track dept.id) {
                       <option [value]="dept.name">{{ dept.name }}</option>
@@ -237,14 +250,9 @@
                   </select>
                 </div>
               }
-
               <div class="edit-actions">
-                <button type="button" class="btn-cancel" (click)="cancelEdit()">
-                  Cancel
-                </button>
-                <button type="submit" class="btn-save">
-                  Save Changes
-                </button>
+                <button type="button" class="btn-cancel" (click)="cancelEdit()">Cancel</button>
+                <button type="submit" class="btn-save">Save Changes</button>
               </div>
             </form>
           }

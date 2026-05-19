@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { DataService } from '../../services/data.service';
 import { AuthService } from '../../services/auth.service';
 import { User } from '../../models/user.model';
-import { LucideAngularModule, UserCircle, Mail, Calendar, Shield, X, Edit2, Trash2 } from 'lucide-angular';
+import { LucideAngularModule, UserCircle, Mail, Calendar, Shield, X, Edit2, Trash2, ChevronDown, Search } from 'lucide-angular';
 import { FormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
 
@@ -29,11 +29,25 @@ export class AccountsComponent {
   readonly X = X;
   readonly Edit2 = Edit2;
   readonly Trash2 = Trash2;
+  readonly ChevronDown = ChevronDown;
+  readonly Search = Search;
 
   selectedAccount = signal<User | null>(null);
   selectedInstructorDetails = signal<any>(null);
   showModal = signal(false);
   isEditing = signal(false);
+
+  // Accordion open/close per section
+  openSection = signal<'instructors' | 'students' | 'parents' | null>(null);
+
+  // Search terms per section
+  instructorSearch = '';
+  studentSearch = '';
+  parentSearch = '';
+
+  toggleSection(section: 'instructors' | 'students' | 'parents') {
+    this.openSection.set(this.openSection() === section ? null : section);
+  }
   editForm = signal({
     full_name: '',
     first_name: '',
@@ -61,19 +75,40 @@ export class AccountsComponent {
   }
 
   allAccounts = computed(() => {
-    return this.dataService.users().filter(u => u.user_id !== '1'); // Exclude master admin
+    return this.dataService.users().filter(u => u.user_id !== '1');
   });
 
-  instructorAccounts = computed(() => {
-    return this.allAccounts().filter(u => u.role === 'instructor');
+  instructorAccounts = computed(() =>
+    this.allAccounts().filter(u => u.role === 'instructor')
+  );
+
+  studentAccounts = computed(() =>
+    this.allAccounts().filter(u => u.role === 'student')
+  );
+
+  parentAccounts = computed(() =>
+    this.allAccounts().filter(u => u.role === 'parent')
+  );
+
+  filteredInstructors = computed(() => {
+    const q = this.instructorSearch.toLowerCase();
+    return this.instructorAccounts().filter(u =>
+      !q || u.full_name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+    );
   });
 
-  studentAccounts = computed(() => {
-    return this.allAccounts().filter(u => u.role === 'student');
+  filteredStudents = computed(() => {
+    const q = this.studentSearch.toLowerCase();
+    return this.studentAccounts().filter(u =>
+      !q || u.full_name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+    );
   });
 
-  parentAccounts = computed(() => {
-    return this.allAccounts().filter(u => u.role === 'parent');
+  filteredParents = computed(() => {
+    const q = this.parentSearch.toLowerCase();
+    return this.parentAccounts().filter(u =>
+      !q || u.full_name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+    );
   });
 
   viewAccount(account: User) {

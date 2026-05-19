@@ -1,9 +1,9 @@
-import { Component, signal, inject, computed, OnDestroy } from '@angular/core';
+import { Component, signal, inject, computed, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DataService } from '../../services/data.service';
 import { AuthService } from '../../services/auth.service';
-import { LucideAngularModule, Camera, CheckCircle, AlertCircle, XCircle, Upload } from 'lucide-angular';
+import { LucideAngularModule, Camera, CheckCircle, AlertCircle, XCircle, Upload, StopCircle } from 'lucide-angular';
 import jsQR from 'jsqr';
 import Swal from 'sweetalert2';
 
@@ -23,27 +23,46 @@ interface ScanResult {
         <div class="flex items-center justify-between mb-6">
           <div>
             <h1 class="text-3xl font-bold text-slate-800">Mark Attendance via QR Code</h1>
-            <p class="text-slate-600 mt-2">Use your camera to scan the QR code and mark yourself present</p>
+            <p class="text-slate-600 mt-2">Scan the QR code to mark yourself present</p>
           </div>
           <lucide-icon [img]="CameraIcon" [size]="48" class="text-amber-600"></lucide-icon>
         </div>
 
-        <!-- Scan buttons -->
-        <div class="flex flex-col gap-3">
-          <!-- Opens native camera on mobile, file picker on desktop -->
-          <label class="w-full flex items-center justify-center gap-2 btn-primary rounded-lg px-6 py-4 font-medium text-lg cursor-pointer">
-            <lucide-icon [img]="CameraIcon" [size]="20"></lucide-icon>
-            Scan QR Code with Camera
-            <input type="file" accept="image/*" capture="environment" class="hidden" (change)="onFileUpload($event)">
-          </label>
+        @if (!cameraActive()) {
+          <!-- Buttons -->
+          <div class="flex flex-col gap-3">
+            <button (click)="startCamera()"
+              class="w-full flex items-center justify-center gap-2 btn-primary rounded-lg px-6 py-4 font-medium text-lg">
+              <lucide-icon [img]="CameraIcon" [size]="20"></lucide-icon>
+              Start Camera & Scan
+            </button>
 
-          <!-- Upload from gallery / file -->
-          <label class="w-full flex items-center justify-center gap-2 border-2 border-dashed border-slate-300 hover:border-slate-400 text-slate-600 hover:text-slate-800 rounded-lg px-6 py-4 font-medium text-lg cursor-pointer transition-colors">
-            <lucide-icon [img]="UploadIcon" [size]="20"></lucide-icon>
-            Upload QR Code Image
-            <input type="file" accept="image/*" class="hidden" (change)="onFileUpload($event)">
-          </label>
-        </div>
+            <label class="w-full flex items-center justify-center gap-2 border-2 border-dashed border-slate-300 hover:border-slate-400 text-slate-600 hover:text-slate-800 rounded-lg px-6 py-4 font-medium text-lg cursor-pointer transition-colors">
+              <lucide-icon [img]="UploadIcon" [size]="20"></lucide-icon>
+              Upload QR Code Image
+              <input type="file" accept="image/*" class="hidden" (change)="onFileUpload($event)">
+            </label>
+          </div>
+        } @else {
+          <!-- Camera view -->
+          <div class="relative rounded-xl overflow-hidden border-4 border-amber-400 bg-black" style="aspect-ratio: 4/3;">
+            <video #videoEl autoplay playsinline muted
+              class="w-full h-full object-cover"></video>
+            <!-- Scan overlay guide -->
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div class="w-48 h-48 border-4 border-amber-400 rounded-xl opacity-70"></div>
+            </div>
+            <p class="absolute bottom-3 left-0 right-0 text-center text-white text-sm font-medium drop-shadow">
+              Point the QR code inside the box
+            </p>
+          </div>
+
+          <button (click)="stopCamera()"
+            class="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white rounded-lg px-6 py-3 font-medium transition-colors mt-3">
+            <lucide-icon [img]="StopIcon" [size]="18"></lucide-icon>
+            Stop Camera
+          </button>
+        }
 
         <!-- Last Scan Result -->
         @if (lastScan(); as scan) {
@@ -99,18 +118,27 @@ interface ScanResult {
   styleUrls: ['./qr-code-scanner.component.css']
 })
 export class QrCodeScannerComponent implements OnDestroy {
+  @ViewChild('videoEl') videoEl?: ElementRef<HTMLVideoElement>;
+
   private dataService = inject(DataService);
   private authService = inject(AuthService);
+  private cdr = inject(ChangeDetectorRef);
 
   readonly CameraIcon = Camera;
   readonly CheckIcon = CheckCircle;
   readonly AlertIcon = AlertCircle;
   readonly ErrorIcon = XCircle;
   readonly UploadIcon = Upload;
+  readonly StopIcon = StopCircle;
 
+  cameraActive = signal(false);
   lastScan = signal<ScanResult | null>(null);
   scannedSessions = signal<Set<string>>(new Set());
   currentUser = this.authService.currentUser;
+
+  private stream: MediaStream | null = null;
+  private scanLoop: number | null = null;
+  private processing = false;
 
   scanHistory = computed(() => {
     const user = this.currentUser();
@@ -118,48 +146,115 @@ export class QrCodeScannerComponent implements OnDestroy {
     const student = this.dataService.students().find(s => s.user_id === user.user_id);
     if (!student) return [];
     const today = new Date().toDateString();
-    const attendance = this.dataService.attendance().filter(a => {
-      const attendDate = new Date(a.date).toDateString();
-      return a.student_id === student.student_id && attendDate === today;
-    });
-    return attendance.map(a => ({
-      ...a,
-      subject_name: this.dataService.subjects().find(s => s.subject_id === a.subject_id)?.subject_name || 'Unknown'
-    }));
+    return this.dataService.attendance()
+      .filter(a => a.student_id === student.student_id && new Date(a.date).toDateString() === today)
+      .map(a => ({
+        ...a,
+        subject_name: this.dataService.subjects().find(s => s.subject_id === a.subject_id)?.subject_name || 'Unknown'
+      }));
   });
 
-  ngOnDestroy() {}
+  async startCamera() {
+    try {
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+      this.cameraActive.set(true);
+      this.cdr.detectChanges();
+
+      // Wait for Angular to render the video element
+      await new Promise(r => setTimeout(r, 80));
+
+      const video = this.videoEl?.nativeElement;
+      if (!video) throw new Error('Video element not ready');
+
+      video.srcObject = this.stream;
+      await video.play();
+
+      this.startScanLoop(video);
+    } catch (err: any) {
+      this.cameraActive.set(false);
+      const msg = err?.name === 'NotAllowedError'
+        ? 'Camera permission denied. Please allow camera access in your browser settings.'
+        : 'Could not start camera. Try uploading an image instead.';
+      await Swal.fire('Camera Error', msg, 'error');
+    }
+  }
+
+  private startScanLoop(video: HTMLVideoElement) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+
+    const tick = () => {
+      if (!this.cameraActive() || this.processing) {
+        this.scanLoop = requestAnimationFrame(tick);
+        return;
+      }
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width  = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: 'dontInvert'
+        });
+        if (code) {
+          this.processing = true;
+          this.processQRCode(code.data).finally(() => {
+            // Resume scanning after 2.5s so the result is visible
+            setTimeout(() => { this.processing = false; }, 2500);
+          });
+        }
+      }
+      this.scanLoop = requestAnimationFrame(tick);
+    };
+
+    this.scanLoop = requestAnimationFrame(tick);
+  }
+
+  stopCamera() {
+    if (this.scanLoop !== null) {
+      cancelAnimationFrame(this.scanLoop);
+      this.scanLoop = null;
+    }
+    if (this.stream) {
+      this.stream.getTracks().forEach(t => t.stop());
+      this.stream = null;
+    }
+    if (this.videoEl?.nativeElement) {
+      this.videoEl.nativeElement.srcObject = null;
+    }
+    this.cameraActive.set(false);
+    this.processing = false;
+  }
+
+  ngOnDestroy() {
+    this.stopCamera();
+  }
 
   async onFileUpload(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
-
     try {
-      // Draw the image onto a canvas, then read pixel data for jsQR
       const bitmap = await createImageBitmap(file);
       const canvas = document.createElement('canvas');
-      canvas.width = bitmap.width;
+      canvas.width  = bitmap.width;
       canvas.height = bitmap.height;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('Canvas not available');
+      const ctx = canvas.getContext('2d')!;
       ctx.drawImage(bitmap, 0, 0);
       bitmap.close();
-
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const code = jsQR(imageData.data, imageData.width, imageData.height);
-
       if (!code) {
         await Swal.fire('Invalid Image', 'Could not find a valid QR code in the uploaded image.', 'error');
         (event.target as HTMLInputElement).value = '';
         return;
       }
-
       await this.processQRCode(code.data);
     } catch (err) {
       console.error('Upload QR error:', err);
       await Swal.fire('Invalid Image', 'Could not read the uploaded image. Please try a clearer photo.', 'error');
     }
-
     (event.target as HTMLInputElement).value = '';
   }
 
@@ -171,12 +266,10 @@ export class QrCodeScannerComponent implements OnDestroy {
         return;
       }
 
-      // Format: ATTEND:<subjectId>:<expiryTimestamp>
       const parts = qrData.replace('ATTEND:', '').split(':');
       const subjectId = parts[0];
-      const expiryTs = parts[1] ? parseInt(parts[1]) : null;
+      const expiryTs  = parts[1] ? parseInt(parts[1]) : null;
 
-      // Check expiry
       if (expiryTs && Date.now() > expiryTs) {
         this.lastScan.set({ sessionId: qrData, timestamp: new Date(), status: 'error' });
         await Swal.fire({
@@ -189,14 +282,12 @@ export class QrCodeScannerComponent implements OnDestroy {
       }
 
       const sessionId = qrData;
-
-      // Check for duplicate scan
       if (this.scannedSessions().has(sessionId)) {
         this.lastScan.set({ sessionId, timestamp: new Date(), status: 'duplicate' });
         return;
       }
 
-      const user = this.currentUser();
+      const user    = this.currentUser();
       const student = this.dataService.students().find(s => s.user_id === user?.user_id);
       if (!student) throw new Error('Student not found');
 
@@ -205,29 +296,25 @@ export class QrCodeScannerComponent implements OnDestroy {
 
       const attendanceRecord = {
         attendance_id: 'ATT' + Date.now(),
-        student_id: student.student_id,
-        student_name: student.full_name,
+        student_id:    student.student_id,
+        student_name:  student.full_name,
         instructor_id: subject.instructor_id,
-        subject_id: subject.subject_id,
-        subject_name: subject.subject_name,
-        date: new Date(),
-        time: new Date().toLocaleTimeString(),
+        subject_id:    subject.subject_id,
+        subject_name:  subject.subject_name,
+        date:   new Date(),
+        time:   new Date().toLocaleTimeString(),
         status: 'Present' as const,
-        method: 'QR' as const
+        method: 'QR'     as const
       };
 
       const marked = await this.dataService.addAttendance(attendanceRecord);
-
       if (!marked) {
-        // Already marked today (duplicate detected by the service)
         this.lastScan.set({ sessionId, timestamp: new Date(), status: 'duplicate' });
         return;
       }
 
       this.scannedSessions().add(sessionId);
       this.lastScan.set({ sessionId, timestamp: new Date(), status: 'success' });
-
-      await this.notifyParentAndInstructor(student, subjectId);
 
     } catch (error: any) {
       console.error('QR processing error:', error);
@@ -237,37 +324,12 @@ export class QrCodeScannerComponent implements OnDestroy {
     }
   }
 
-  private async notifyParentAndInstructor(student: any, subjectId: string) {
-    try {
-      const subject = this.dataService.subjects().find(s => s.subject_id === subjectId);
-      const instructor = this.dataService.instructors().find(i => i.instructor_id === subject?.instructor_id);
-
-      // Notify instructor
-      if (instructor?.user_id) {
-        // In a real app, send via email/SMS
-        console.log(`Instructor ${instructor?.full_name} notified: ${student.full_name} marked present`);
-      }
-
-      // Notify parent(s)
-      const parents = this.dataService.parents().filter(p => p.student_id === student.student_id);
-      parents.forEach(parent => {
-        console.log(`Parent ${parent?.full_name} notified: ${student.full_name} marked present for ${subject?.subject_name}`);
-      });
-    } catch (error) {
-      console.error('Notification error:', error);
-    }
-  }
-
   getScanStatusClasses(status: string): string {
     switch (status) {
-      case 'success':
-        return 'bg-green-50 border-green-300';
-      case 'duplicate':
-        return 'bg-yellow-50 border-yellow-300';
-      case 'error':
-        return 'bg-red-50 border-red-300';
-      default:
-        return 'bg-slate-50 border-slate-300';
+      case 'success':   return 'bg-green-50 border-green-300';
+      case 'duplicate': return 'bg-yellow-50 border-yellow-300';
+      case 'error':     return 'bg-red-50 border-red-300';
+      default:          return 'bg-slate-50 border-slate-300';
     }
   }
 }
