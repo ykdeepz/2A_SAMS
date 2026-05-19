@@ -546,9 +546,10 @@ export class DataService {
   }
 
   async addRegistrationRequest(req: RegistrationRequest) {
-    const saved = await this.addDoc_('registration_requests', req);
-    this.registrationRequests.update(r => [...r, saved]);
-    return saved;
+    // Don't manually update the signal — the onSnapshot listener will
+    // pick up the new document automatically and update it without duplicates
+    await this.addDoc_('registration_requests', req);
+    return req;
   }
 
   async updateRegistrationRequest(req: RegistrationRequest) {
