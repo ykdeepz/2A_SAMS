@@ -44,24 +44,31 @@ interface ScanResult {
             </label>
           </div>
         } @else {
-          <!-- Camera view -->
-          <div class="relative rounded-xl overflow-hidden border-4 border-amber-400 bg-black" style="aspect-ratio: 4/3;">
-            <video #videoEl autoplay playsinline muted
-              class="w-full h-full object-cover"></video>
-            <!-- Scan overlay guide -->
-            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div class="w-48 h-48 border-4 border-amber-400 rounded-xl opacity-70"></div>
+          <!-- Camera modal overlay -->
+          <div class="fixed inset-0 z-50 bg-black flex flex-col">
+            <!-- Header -->
+            <div class="flex items-center justify-between px-4 py-3 bg-black/80">
+              <p class="text-white font-semibold text-lg">Scan QR Code</p>
+              <button (click)="stopCamera()"
+                class="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-2 font-medium text-sm transition-colors">
+                <lucide-icon [img]="StopIcon" [size]="16"></lucide-icon>
+                Close
+              </button>
             </div>
-            <p class="absolute bottom-3 left-0 right-0 text-center text-white text-sm font-medium drop-shadow">
-              Point the QR code inside the box
-            </p>
-          </div>
 
-          <button (click)="stopCamera()"
-            class="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white rounded-lg px-6 py-3 font-medium transition-colors mt-3">
-            <lucide-icon [img]="StopIcon" [size]="18"></lucide-icon>
-            Stop Camera
-          </button>
+            <!-- Video feed fills remaining space -->
+            <div class="relative flex-1 overflow-hidden">
+              <video #videoEl autoplay playsinline muted
+                class="w-full h-full object-cover"></video>
+              <!-- Scan guide box -->
+              <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div class="w-64 h-64 border-4 border-amber-400 rounded-2xl opacity-80"></div>
+              </div>
+              <p class="absolute bottom-6 left-0 right-0 text-center text-white text-sm font-medium drop-shadow-lg">
+                Point the QR code inside the box
+              </p>
+            </div>
+          </div>
         }
 
         <!-- Last Scan Result -->
@@ -310,11 +317,29 @@ export class QrCodeScannerComponent implements OnDestroy {
       const marked = await this.dataService.addAttendance(attendanceRecord);
       if (!marked) {
         this.lastScan.set({ sessionId, timestamp: new Date(), status: 'duplicate' });
+        this.stopCamera();
+        await Swal.fire({
+          title: 'Already Marked',
+          text: 'You have already marked attendance for this subject today.',
+          icon: 'warning',
+          confirmButtonColor: '#f59e0b',
+          timer: 3000,
+          showConfirmButton: true
+        });
         return;
       }
 
       this.scannedSessions().add(sessionId);
       this.lastScan.set({ sessionId, timestamp: new Date(), status: 'success' });
+      this.stopCamera();
+      await Swal.fire({
+        title: 'Attendance Marked!',
+        text: `You are marked Present for ${subject.subject_name}.`,
+        icon: 'success',
+        confirmButtonColor: '#10b981',
+        timer: 3000,
+        showConfirmButton: true
+      });
 
     } catch (error: any) {
       console.error('QR processing error:', error);
