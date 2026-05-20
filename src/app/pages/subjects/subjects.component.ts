@@ -52,10 +52,13 @@ export class SubjectsComponent {
       }
     }
     
-    // If student, only show enrolled subjects
+    // If student, only show subjects they are personally enrolled in
     if (this.roleService.isStudent()) {
-      const enrollments = this.dataService.enrollments();
-      const enrolledSubjectIds = enrollments.map(e => e.subject_id);
+      const student = this.dataService.students().find(s => s.user_id === user?.user_id);
+      if (!student) return [];
+      const enrolledSubjectIds = this.dataService.enrollments()
+        .filter(e => e.student_id === student.student_id)
+        .map(e => e.subject_id);
       filtered = filtered.filter(s => enrolledSubjectIds.includes(s.subject_id));
     }
     
